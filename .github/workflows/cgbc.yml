@@ -63,3 +63,4 @@ jobs:
           tag: cgbc-${{ steps.buildid.outputs.formattedTime }}
           name: "Cedar Grove Baptist Church"
           bodyFile: C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt
+          
