@@ -1,0 +1,37 @@
+[
+  {
+    "title": "Operation Christmas Child",
+    "summary": "International Missions",
+    "imageUrl": "img/ministry-slide-0.png"
+  },
+  {
+    "title": "Reaching and Teaching",
+    "summary": "Jimmy And Heather Winfrey",
+    "imageUrl": "img/ministry-slide-1.png"
+  },
+  {
+    "title": "Philippine Missions",
+    "summary": "Jose And Juliet Fernandez",
+    "imageUrl": "img/ministry-slide-2.png"
+  },
+  {
+    "title": "Abba’s Living Water",
+    "summary": "Steve And Philomina Ogban",
+    "imageUrl": "img/ministry-slide-3.png"
+  },
+  {
+    "title": "Mark 12 Ministries",
+    "summary": "Homeless Ministries",
+    "imageUrl": "img/ministry-slide-4.png"
+  },
+  {
+    "title": "Community Service Projects",
+    "summary": "Deacon's Ministries",
+    "imageUrl": "img/ministry-slide-5.png"
+  },
+  {
+    "title": "Nelson Baptist Association",
+    "summary": "Kentucky Baptist",
+    "imageUrl": "img/ministry-slide-7.png"
+  }
+]

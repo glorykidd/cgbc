@@ -1,0 +1,169 @@
+﻿@page "/womenonmission"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<PageTitle>CGBC: Womens Ministry</PageTitle>
+
+<section class="hero-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <h1>Cedar Grove Baptist Church</h1>
+        <h2>Women's Ministry</h2>
+        <p>"Charm is deceitful, and beauty is vain, but a woman who fears the Lord is to be
+          praised."<br /><b>Proverbs
+            31:30</b></p>
+        <a href="/ministries?p=2" class="btn btn-success">Back to all ministries</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container" style="height: 100%;">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <Card TextAlignment="Alignment.Center"
+          style="background: rgba(255,255,255,0.5); border: 0px solid blue; border-radius: 20px;">
+          <CardBody>
+            <CardText>
+              <p style="font-size: 1.2em;"><i>"Older women likewise are to be reverent in behavior, not slanderers or
+                  slaves to much wine. They are to teach what is good, and so train the young women to love their
+                  husbands and children, to be self-controlled, pure, working at home, kind, and submissive to their own
+                  husbands, that the word of God may not be reviled."</i><br /><b>Titus 2:3 – 5</b></p>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <Card TextAlignment="Alignment.Center"
+          style="background: rgba(255,255,255,0.5); border: 0px solid blue; border-radius: 20px;">
+          <CardBody>
+            <CardText>
+              <h2 style="padding-top: 20px; padding-bottom: 20px;">Women's Ministry &commat; CGBC</h2>
+              <p style="font-size: 1.25em;">The vision of Cedar Grove’s Women’s Ministry is to encourage women to love
+                the Lord our God with all their heart, soul, mind and strength; and to love our neighbors as ourselves.
+                We endeavor to do so by encouraging women to worship God through a lifestyle of fellowship, prayer,
+                Bible study, and service. We believe that as women grow and mature in godliness, they are better
+                equipped to nurture and serve in their families, to enrich the church, and to evangelize our local
+                communities and the world.</p>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 30%; float: left; margin: 20px; height: 325px; border-radius: 20px;">
+          <div style="width: 100%; text-align: center;">
+            <img class="rounded-top" style="width: 100px; margin: 20px;" src="/img/detail/bible.png" />
+          </div>
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <h2>Bible Studies</h2>
+              <p style="text-size: 1.2em;">Weekly bible studies for women</p>
+              <a href="/calendar" class="btn btn-primary">Calendar</a>
+            </CardText>
+          </CardBody>
+        </Card>
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 30%; float: left; margin: 20px; height: 325px; border-radius: 20px;">
+          <div style="width: 100%; text-align: center;">
+            <img class="rounded-top" style="width: 100px; margin: 20px;" src="/img/detail/prayer.png" />
+          </div>
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <h2>Prayer Ministry</h2>
+              <p style="text-size: 1.2em;">Praying for our church, community, and the entire world</p>
+            </CardText>
+          </CardBody>
+        </Card>
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 30%; float: left; margin: 20px; height: 325px; border-radius: 20px;">
+          <div style="width: 100%; text-align: center;">
+            <img class="rounded-top" style="width: 100px; margin: 20px;" src="/img/detail/meals.png" />
+          </div>
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <h2>Meals</h2>
+              <p style="text-size: 1.2em;">Meals for a variety of situations from "just because" to Bereavement and
+                Mercy for those in need</p>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 45%; float: left; margin: 20px; border-radius: 20px;">
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <h2>Bible Studies</h2>
+              <p style="text-size: 1.2em;">Weekly bible studies on a variety of topics with rich discussions to foster
+                growth and learning opportunities for women of all ages. Check the calendar to connect with us for our
+                next session!</p>
+              <a href="/calendar" class="btn btn-primary">Calendar</a>
+            </CardText>
+          </CardBody>
+        </Card>
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 45%; float: left; margin: 20px; border-radius: 20px;">
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <h2>Friends Out to Lunch or Dinner (FOLD)</h2>
+              <p style="text-size: 1.2em;">We love to celebrate together! We get together monthly (sometimes more) to
+                just socialize and build better relationships. If you would like to join us, check out the calendar to
+                see when our next gathering is happening!</p>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <div style="height: 600px; width: 100%; text-align: center; margin-bottom: 50px;">
+          <Carousel Autoplay="CarouselAutoPlay.StartOnPageLoad" ShowPreviousNextControls="false">
+            <CarouselItem Active="true">
+              <Image Src="img/detail/fold-0.jpg" style="height: 600px; border-radius: 20px;" />
+            </CarouselItem>
+            @if (sliderContents != null)
+            {
+              @foreach (var slide in sliderContents)
+              {
+                <CarouselItem>
+                  <Image Src="@slide.imageUrl" style="height: 600px; border-radius: 20px;" />
+                </CarouselItem>
+              }
+            }
+          </Carousel>
+        </div>
+      </div>
+    </div>
+  </div>
+  <Footer />
+</main>
+
+@code {
+  private SliderContent[]? sliderContents;
+
+  protected override async Task OnInitializedAsync()
+  {
+    sliderContents = await Http.GetFromJsonAsync<SliderContent[]>("data/womens.json");
+  }
+
+  public class SliderContent
+  {
+    public string? imageUrl { get; set; }
+  }
+}

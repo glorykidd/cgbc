@@ -1,0 +1,30 @@
+﻿@page "/sermons"
+@inject IJSRuntime JSRuntime
+
+<PageTitle>CGBC: Sermons</PageTitle>
+
+<section class="hero-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <h1>Cedar Grove Baptist Church</h1>
+        <p>Sermon Library</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container" style="height: 100%;">
+  <div class="container">
+    <div class="row">
+      <div class="col-1 d-none d-md-block"></div>
+      <div class="col-md-10 col-sm-12">
+        <iframe tabindex="-1" width="1" height="950"
+          src="https://embed.sermonaudio.com/browser/broadcaster/cedargrovebaptist/?sort=newest&page_size=25&background=false&rounded=true&sermon_borders=false&external_borders=false"
+          style="min-width: 100%; max-width: 100%; " allow="autoplay" frameborder="0" scrolling="no"></iframe>
+      </div>
+      <div class="col-1 d-none d-md-block"></div>
+    </div>
+  </div>
+  <Footer />
+</main>

@@ -1,0 +1,383 @@
+﻿@page "/ministries"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavigationManager
+
+<style>
+  blockquote {
+    quotes: "\201C" "\201D" "\2018" "\2019";
+    font-style: italic;
+    margin-left: 15px;
+  }
+
+  blockquote::before {
+    content: open-quote;
+    /* Display the opening quote character */
+    font-size: 1.25em;
+    color: #0a0909;
+  }
+</style>
+
+<PageTitle>CGBC: Ministries</PageTitle>
+
+<section class="hero-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 d-none d-md-block">
+        <h1>Cedar Grove Baptist Church</h1>
+        <p>We <i>are</i> Missions</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container" style="height: 100%;">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <Card TextAlignment="Alignment.Start"
+          style="background: rgba(255, 255, 255, 0.6); border: 0px solid blue; border-radius: 20px; height: 300px; overflow: scroll;">
+          <CardBody>
+            <CardTitle>We are missions!</CardTitle>
+            <CardText>
+              <p>We at Cedar Grove are committed to fulfilling the Great Commission found in Matthew 28:19.
+              <blockquote>
+                Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the
+                Son and of the Holy Spirit.
+              </blockquote>
+              Annually we take up offerings to support mission organizations. In December we collect money for
+              International Missionaries with the International Mission Board through their Lottie Moon Offering. We
+              also commit to supporting other missionaries through monthly donations.</p>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <Carousel Autoplay="CarouselAutoPlay.StartOnPageLoad" ShowPreviousNextControls="false">
+          <CarouselItem Interval="10000" Active="true">
+            <Card TextAlignment="Alignment.Center"
+              style="background: rgba(255,255,255,0.4); border: 0px solid blue; border-radius: 20px; height: 300px;">
+              <CardBody>
+                <CardText>
+                  <div style="width: 100%; text-align: center;"><img src="img/ministry-slide-6.png"
+                      style="height: 125px; padding-top: 50px; padding-bottom: 10px;" /></div>
+                  <h4 style="padding-top: 20px;">International Mission Board (IMB)</h4>
+                  <p>Southern Baptist Convention</p>
+                </CardText>
+              </CardBody>
+            </Card>
+          </CarouselItem>
+          @if (sliderContents != null)
+          {
+            @foreach (var slide in sliderContents)
+            {
+              <CarouselItem Interval="10000">
+                <Card TextAlignment="Alignment.Center"
+                  style="background: rgba(255,255,255,0.4); border: 0px solid blue; border-radius: 20px; height: 300px;">
+                  <CardBody>
+                    <div style="width: 100%; text-align: center;"><img src="@slide.imageUrl"
+                        style="height: 125px; padding-top: 50px; padding-bottom: 10px;" /></div>
+                    <h4 style="padding-top: 20px;">@slide.Title</h4>
+                    <p>@slide.Summary</p>
+                  </CardBody>
+                </Card>
+              </CarouselItem>
+            }
+          }
+        </Carousel>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <Tabs EnableFadeEffect="true" NavStyle="NavStyle.Pills"
+          style="margin-bottom: 10px; background: rgba(255,255,255,0.5); border-radius: 20px;">
+          <Tab Title="Church in dialogue" Active="@(_activeTabName == 0)">
+            <Content>
+              <div class="row">
+                <div class="col-sm-12 col-md-6">
+                  <img src="img/ministry/churchindialog.jpg"
+                    style="width: 100%; height: 550px; overflow: hidden; border-radius: 20px;" />
+                </div>
+                <div class="col-sm-12 col-md-6">
+                  <Card TextAlignment="Alignment.Center"
+                    style="background: rgba(255,255,255,0.6); border: 0px solid blue; border-radius: 20px; height: 500px;">
+                    <CardBody>
+                      <CardText>
+                        <div style="width: 100%; text-align: center;"><img src="img/ministry/churchindialog-logo.png"
+                            style="height: 125px; padding: 20px;" /></div>
+                        <h2 style="padding-top: 20px; padding-bottom: 20px;">Church in Dialogue</h2>
+                        <p style="font-size: 1.25em;">The Church in Dialogue seeks Christian unity without glossing over
+                          differences nor dispensing with truth. It is a series of panel discussions and joint worship
+                          services between all orthodox Christian traditions that hold to the authority of Scripture and
+                          adhere
+                          to the fundamental tenets of the historic Christian faith.</p>
+                      </CardText>
+                    </CardBody>
+                  </Card>
+                  <div style="width: 100%; text-align: center; padding: 20px;"><a href="/churchindialogue"
+                      class="btn btn-success">Learn more</a></div>
+                </div>
+              </div>
+            </Content>
+          </Tab>
+          <Tab Title="Men on mission" Active="@(_activeTabName == 1)">
+            <Content>
+              <div class="row">
+                <div class="col-sm-12 col-md-6">
+                  <Card TextAlignment="Alignment.Center"
+                    style="background: rgba(255,255,255,0.6); border: 0px solid blue; border-radius: 20px; height: 500px;">
+                    <CardBody>
+                      <CardText>
+                        <div style="width: 100%; text-align: center;"><img src="img/ministry/menonmission-logo.png"
+                            style="height: 125px; padding: 20px;" /></div>
+                        <h2 style="padding-top: 20px; padding-bottom: 20px;">Men on Mission</h2>
+                        <p style="font-size: 1.25em;">Our Deacons and Men on Mission ministries love serving our Lord,
+                          church, and community!</p>
+                      </CardText>
+                    </CardBody>
+                  </Card>
+                  <div style="width: 100%; text-align: center; padding: 20px;"><a href="/menonmission"
+                      class="btn btn-success">Learn more</a></div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                  <img src="img/ministry/menonmission.jpeg"
+                    style="width: 100%; height: 550px; overflow: hidden; border-radius: 20px;" />
+                </div>
+              </div>
+            </Content>
+          </Tab>
+          <Tab Title="Women's Ministry" Active="@(_activeTabName == 2)">
+            <Content>
+              <div class="row">
+                <div class="col-sm-12 col-md-6">
+                  <img src="img/ministry/womenonmission.jpg"
+                    style="width: 100%; height: 550px; overflow: hidden; border-radius: 20px;" />
+                </div>
+                <div class="col-sm-12 col-md-6">
+                  <Card TextAlignment="Alignment.Center"
+                    style="background: rgba(255,255,255,0.6); border: 0px solid blue; border-radius: 20px; height: 500px;">
+                    <CardBody>
+                      <CardText>
+                        <div style="width: 100%; text-align: center;"><img src="img/ministry/womenonmission-logo.png"
+                            style="height: 125px; padding: 20px;" /></div>
+                        <h2 style="padding-top: 20px; padding-bottom: 20px;">Women's Ministry</h2>
+                        <p style="font-size: 1.25em;">Learn about all the womens activities happening in the church and
+                          community!</p>
+                      </CardText>
+                    </CardBody>
+                  </Card>
+                  <div style="width: 100%; text-align: center; padding: 20px;"><a href="/womenonmission"
+                      class="btn btn-success">Learn more</a></div>
+                </div>
+              </div>
+            </Content>
+          </Tab>
+          <Tab Title="Youth Ministry" Active="@(_activeTabName == 3)">
+            <Content>
+              <div class="row">
+                <div class="col-sm-12 col-md-6">
+                  <Card TextAlignment="Alignment.Center"
+                    style="background: rgba(255,255,255,0.6); border: 0px solid blue; border-radius: 20px; height: 550px; overflow: scroll;">
+                    <CardBody>
+                      <CardText>
+                        <h2 style="padding-top: 20px; padding-bottom: 20px;">Youth Ministry</h2>
+                        <p style="font-size: 1.25em;">Our youth ministry is for students in 6th-12th grade. In our
+                          ministry to youth we are serious about presenting the reality of who God is as revealed in the
+                          Bible. We study God’s word to learn about God’s character, what He has done, what He is doing,
+                          and how we should respond to Him. We are intentional about sharing the Gospel and discipling
+                          youth so they grow and mature in their personal walk with Jesus. We want to see youth
+                          encounter the love of God, be encouraged, transformed, and equipped to impact the world for
+                          God’s glory.</p>
+                      </CardText>
+                    </CardBody>
+                  </Card>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                  <img src="img/ministry/youthministry.jpg"
+                    style="width: 100%; height: 550px; overflow: hidden; border-radius: 20px;" />
+                </div>
+              </div>
+            </Content>
+          </Tab>
+          <Tab Title="Children's Ministry" Active="@(_activeTabName == 4)">
+            <Content>
+              <div class="row">
+                <div class="col-sm-12 col-md-6">
+                  <iframe style="width: 100%; height: 450px; border-radius: 25px;" class="embed-responsive-item"
+                    src="https://www.youtube.com/embed/y4CXSQxNENY" title="A Vision for Teaching the Word of God"
+                    frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                  <Card TextAlignment="Alignment.Center"
+                    style="background: rgba(255,255,255,0.6); border: 0px solid blue; border-radius: 20px; height: 450px; overflow: scroll;">
+                    <CardBody>
+                      <CardText>
+                        <h2 style="padding-top: 20px; padding-bottom: 20px;">Children's Ministry</h2>
+                        <p style="font-size: 1.25em;">Our mission is to partner with parents to guide children towards
+                          developing a heart for God. On Sunday mornings we have Children’s Worship for ages 3 – Second
+                          grade, teaching the children to worship through song, Bible study and prayer using Truth78
+                          curriculum. On Wednesday evenings children ages 3 years – 5th grade meet to study God’s Word
+                          using the Gospel Project curriculum. It shows how all Scripture gives testimony to Jesus
+                          Christ.</p>
+                      </CardText>
+                    </CardBody>
+                  </Card>
+                </div>
+              </div>
+            </Content>
+          </Tab>
+          <Tab Title="Grief Share" Active="@(_activeTabName == 5)">
+            <Content>
+              <div class="row">
+                <div class="col-sm-12 col-md-6">
+                  <Card TextAlignment="Alignment.Center"
+                    style="background: rgba(255,255,255,0.6); border: 0px solid blue; border-radius: 20px; height: 500px; overflow: scroll;">
+                    <CardBody>
+                      <CardText>
+                        <h2 style="padding-top: 20px; padding-bottom: 20px;">Grief Share Group</h2>
+                        <p style="font-size: 1.25em;">At Grief Share you’ll receive valuable guidance and tips, leading
+                          you to relief, comfort, and peace of mind. A Grief Share support group is a safe, welcoming
+                          place where people understand the difficult emotions of grief. Through this 13-week group,
+                          you’ll discover what to expect in the days ahead and what’s “normal” in grief. Since there are
+                          no neat, orderly stages of grief, you’ll learn helpful ways of coping with grief, in all its
+                          unpredictability—and gain solid support each step of the way.<br /><br />(check our <a
+                            href="/calendar" target="_blank">calendar</a> for all the dates and times)</p>
+                      </CardText>
+                    </CardBody>
+                  </Card>
+                  <div style="width: 100%; text-align: center; padding: 20px;"><a href="https://www.griefshare.org/"
+                      target="_blank" class="btn btn-success">Learn more and sign up</a></div>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                  <img src="img/ministry/griefshare.jpg"
+                    style="width: 100%; height: 550px; overflow: hidden; border-radius: 20px;" />
+                </div>
+              </div>
+            </Content>
+          </Tab>
+          <Tab Title="Embrace Grace" Active="@(_activeTabName == 6)">
+            <Content>
+              <div class="row">
+                <div class="col-sm-12 col-md-6">
+                  <img src="img/detail/embracegrace.jpg"
+                    style="width: 100%; height: 550px; overflow: hidden; border-radius: 20px;" />
+                </div>
+                <div class="col-sm-12 col-md-6">
+                  <Card TextAlignment="Alignment.Center"
+                    style="background: rgba(255,255,255,0.6); border: 0px solid blue; border-radius: 20px; height: 500px; overflow: scroll;">
+                    <CardBody>
+                      <CardText>
+                        <h2 style="padding-top: 20px; padding-bottom: 20px;">Embrace Grace</h2>
+                        <p style="font-size: 1.2em;">Having an unplanned pregnancy or being a young, single mom can be a
+                          time of mixed and bittersweet emotions but know you’re not alone. Embrace Grace is a support
+                          group designed to help and encourage young, single women that are experiencing an unplanned
+                          pregnancy. This support group provides spiritual and emotional support through the local
+                          church. By joining an Embrace Grace group, you will have the opportunity to meet other moms
+                          who are in a similar life season, and mentors that have walked through similar situations to
+                          what you are now going through. Embrace Grace was created to help encourage, educate and
+                          empower young, single moms just like you, and to make sure that you know that you are loved
+                          and valued by God and the leaders at Embrace Grace.</p>
+                      </CardText>
+                    </CardBody>
+                  </Card>
+                  <div style="width: 100%; text-align: center; padding: 20px;">
+                    <Modal @ref="modal" Title="Meant-To-Be Miracle Baby, Isreal's Story" IsVerticallyCentered="true"
+                      Fullscreen="ModalFullscreen.MediumDown" Size="ModalSize.Large">
+                      <BodyTemplate>
+                        <div class="row">
+                          <div class="col-12"><iframe width="560" height="315"
+                              src="https://www.youtube.com/embed/KKw6HyUt92k?si=W1DBu87_XlpsOGNx"
+                              title="Isreal's Story" frameborder="0"
+                              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                              referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe></div>
+                        </div>
+                      </BodyTemplate>
+                    </Modal>
+                    <Button Color="ButtonColor.Primary" @onclick="OnShowModalClick">Watch the video</Button>
+                  </div>
+                </div>
+              </div>
+            </Content>
+          </Tab>
+          <Tab Title="TrailLife" Active="@(_activeTabName == 7)">
+            <Content>
+              <div class="row">
+                <div class="col-sm-12 col-md-6">
+                  <Card TextAlignment="Alignment.Center"
+                    style="background: rgba(255,255,255,0.6); border: 0px solid blue; border-radius: 20px; height: 500px; overflow: scroll;">
+                    <CardBody>
+                      <CardText>
+                        <h2 style="padding-top: 20px; padding-bottom: 20px;">TrailLife</h2>
+                        <p style="font-size: 1.25em;">Trail Life USA is a Church-Based, Christ-Centered, Boy-Focused mentoring and discipleship journey that speaks to the heart of a boy. Established on timeless values derived from the Bible and set in the context of outdoor adventure, boys from age 5 to 17 are engaged in a Troop setting by male mentors where they are challenged to grow in character, understand their purpose, serve their community, and develop practical leadership skills to carry out the mission for which they were created.<br /><br />(check our <a
+                            href="/calendar" target="_blank">calendar</a> for all the dates and times)</p>
+                      </CardText>
+                    </CardBody>
+                  </Card>
+                </div>
+                <div class="col-sm-12 col-md-6">
+                  <img src="img/ministry/traillife_logo.jpg"
+                    style="width: 100%; overflow: hidden; border-radius: 20px;" />
+                    <div style="width: 100%; text-align: center; padding: 20px;"><h4>Christ-Centered. Boy-Focused.</h4></div>
+                </div>
+              </div>
+            </Content>
+          </Tab>
+        </Tabs>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+  </div>
+  <Footer />
+</main>
+
+@code {
+  private int _activeTabName = 0;
+
+  [Parameter]
+  [SupplyParameterFromQuery]
+  public int? p { get; set; }
+
+  private MinistrySliderContent[]? sliderContents;
+
+  protected override async Task OnInitializedAsync()
+  {
+    sliderContents = await Http.GetFromJsonAsync<MinistrySliderContent[]>("data/ministry.json");
+  }
+
+  public class MinistrySliderContent
+  {
+    public string? Title { get; set; }
+    public string? Summary { get; set; }
+    public string? imageUrl { get; set; }
+  }
+  private Modal modal = default!;
+
+  private async Task OnShowModalClick()
+  {
+    await modal.ShowAsync();
+  }
+
+  private async Task OnHideModalClick()
+  {
+    await modal.HideAsync();
+  }
+
+  protected override void OnInitialized()
+  {
+    if (p != null)
+    {
+      _activeTabName = p.Value;
+    }
+    else
+    {
+      _activeTabName = 0;
+    }
+  }
+}

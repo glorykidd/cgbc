@@ -1,0 +1,160 @@
+﻿@page "/menonmission"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<PageTitle>CGBC: Church in Dialogue</PageTitle>
+
+<section class="hero-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <h1>Cedar Grove Baptist Church</h1>
+        <h2>Men on Mission</h2>
+        <p>"All nations whom You made will come and worship before You, Lord, and they will glorify Your
+          name."<br /><b>Psalm 86:9</b> </p>
+        <a href="/ministries?p=1" class="btn btn-success">Back to all ministries</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container" style="height: 100%;">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <Card TextAlignment="Alignment.Center"
+          style="background: rgba(255,255,255,0.5); border: 0px solid blue; border-radius: 20px;">
+          <CardBody>
+            <CardText>
+              <p style="font-size: 2em;">The Men’s Ministry at Cedar Grove exists first and foremost to glorify God.</p>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <Card TextAlignment="Alignment.Center"
+          style="background: rgba(255,255,255,0.5); border: 0px solid blue; border-radius: 20px;">
+          <CardBody>
+            <CardText>
+              <h2 style="padding-top: 20px; padding-bottom: 20px;">Men on Mission</h2>
+              <p style="font-size: 1.25em;">We do this by fostering community with one another, and by God’s grace, we
+                glorify Him by living that out in our daily lives. We gather for breakfast on the third Saturday of each
+                month at 8:00 am. We eat breakfast together, have a devotional, and pray.We tackle projects around the
+                church grounds, take care of the needs at homes of older church members and persons in the community. We
+                have a great time of fellowship working together.</p>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 30%; float: left; margin: 20px; height: 325px; border-radius: 20px;">
+          <div style="width: 100%; text-align: center;">
+            <img class="rounded-top" style="width: 100px; margin: 20px;" src="/img/detail/church.png" />
+          </div>
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <h2>Locally and more</h2>
+              <p style="text-size: 1.2em;">Maintenance, groundskeeping, and community projects</p>
+            </CardText>
+          </CardBody>
+        </Card>
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 30%; float: left; margin: 20px; height: 325px; border-radius: 20px;">
+          <div style="width: 100%; text-align: center;">
+            <img class="rounded-top" style="width: 100px; margin: 20px;" src="/img/detail/mission.png" />
+          </div>
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <h2>Our mission</h2>
+              <p style="text-size: 1.2em;">Glorify God in all we do and say</p>
+            </CardText>
+          </CardBody>
+        </Card>
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 30%; float: left; margin: 20px; height: 325px; border-radius: 20px;">
+          <div style="width: 100%; text-align: center;">
+            <img class="rounded-top" style="width: 100px; margin: 20px;" src="/img/detail/bible.png" />
+          </div>
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <h2>Authority</h2>
+              <p style="text-size: 1.2em;">The bible is the ultimate source</p>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 45%; float: left; margin: 20px; border-radius: 20px;">
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <h2>Join us</h2>
+              <p style="text-size: 1.2em;">We meet on the third Saturday each month (check on our calendar for specific
+                dates) and start with breakfast, devotions, and then make plans for serving our church and community. We
+                encourage you to join us, please come on down!</p>
+              <a href="/calendar" class="btn btn-primary">Calendar</a>
+            </CardText>
+          </CardBody>
+        </Card>
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 45%; float: left; margin: 20px; border-radius: 20px;">
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <h2>Impact</h2>
+              <p style="text-size: 1.2em;">Our mission is to serve God, our local church, and the community at large. </p>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <div style="height: 600px; width: 100%; text-align: center; margin-bottom: 50px;">
+          <Carousel Autoplay="CarouselAutoPlay.StartOnPageLoad" ShowPreviousNextControls="false">
+            <CarouselItem Active="true">
+              <Image Src="img/detail/men-0.jpg" style="height: 600px; border-radius: 20px;" />
+            </CarouselItem>
+            @if (sliderContents != null)
+            {
+              @foreach (var slide in sliderContents)
+              {
+                <CarouselItem>
+                  <Image Src="@slide.imageUrl" style="height: 600px; border-radius: 20px;" />
+                </CarouselItem>
+              }
+            }
+          </Carousel>
+        </div>
+      </div>
+    </div>
+  </div>
+  <Footer />
+</main>
+
+@code {
+  private SliderContent[]? sliderContents;
+
+  protected override async Task OnInitializedAsync()
+  {
+    sliderContents = await Http.GetFromJsonAsync<SliderContent[]>("data/mens.json");
+  }
+
+  public class SliderContent
+  {
+    public string? imageUrl { get; set; }
+  }
+}

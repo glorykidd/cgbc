@@ -1,0 +1,52 @@
+[
+  {
+    "title": "Joe Vaughn",
+    "summary": "Elder",
+    "imageUrl": "img/staff/joevaughn.jpg"
+  },
+  {
+    "title": "Don Potter",
+    "summary": "Elder",
+    "imageUrl": "img/staff/donpotter.jpg"
+  },
+  {
+    "title": "Terry Nichols",
+    "summary": "Deacon Chairman",
+    "imageUrl": "img/staff/terrynichols.jpeg"
+  },
+  {
+    "title": "Mike Waters",
+    "summary": "Deacon",
+    "imageUrl": "img/staff/mikewaters.jpg"
+  },
+  {
+    "title": "Ralph Brothers",
+    "summary": "Deacon",
+    "imageUrl": "img/staff/ralphbrothers.jpeg"
+  },
+  {
+    "title": "Frank Hutchinson",
+    "summary": "Deacon",
+    "imageUrl": "img/staff/frankhutchinson.jpg"
+  },
+  {
+    "title": "Sam Franke",
+    "summary": "Deacon",
+    "imageUrl": "img/staff/samfranke.jpg"
+  },
+  {
+    "title": "Brian Marcum",
+    "summary": "Deacon",
+    "imageUrl": "img/staff/brianmarcum.jpg"
+  },
+  {
+    "title": "Sandra Marcum",
+    "summary": "Childrens Ministry",
+    "imageUrl": "img/staff/sandramarcum.jpg"
+  },
+  {
+    "title": "Jordan Bennett",
+    "summary": "Secretary & Music Ministry",
+    "imageUrl": "img/staff/jordanbennet.jpg"
+  }
+]

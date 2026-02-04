@@ -1,0 +1,185 @@
+﻿@page "/about"
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<PageTitle>CGBC: About Us</PageTitle>
+
+<section class="hero-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <h1>Cedar Grove Baptist Church</h1>
+        <p>About Us</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container" style="height: 100%;">
+  <div class="container">
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <Card TextAlignment="Alignment.Start"
+          style="background: rgba(185, 242, 227, 0.5); border: 0px solid blue; border-radius: 20px;">
+          <CardBody>
+            <CardText>
+              <div style="border-left: 10px solid blue;">
+                <h2 style="padding-left: 30px;">What we believe</h2>
+                <p style="font-size: 1.25em; padding-left: 30px;"><b>W</b>orship – Christ centered worship under
+                  Biblical
+                  authority.<br /><b>I</b>nstruction – Making disciples through the preaching and teaching of God’s
+                  word.<br /><b>F</b>ellowship – Living out the gospel together in unity of belief and
+                  practice.<br /><b>E</b>vangelism – Making disciples through personal witness at home and abroad.</p>
+              </div>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12">
+        <Card TextAlignment="Alignment.Start"
+          style="background: rgba(255, 255, 255, 0.5); border: 0px solid blue; border-radius: 20px;">
+          <CardBody>
+            <CardText>
+              <h2>2000 Baptist Faith & Message</h2>
+              <p style="font-size: 1.25em;">The New Testament writers use a number of different images when they talk
+                about the church. These images help us understand the nature and mission of the church. The church is
+                referred to as the “People of God”, “the Temple of the Holy Spirit”, the Household of God”, and the
+                “Body of Christ”. John in Revelation 19:7 refers to the church as the “Bride of Christ”. Christ is the
+                loving Bridegroom who gave His life for His Bride and clothes her in fine linen. The Greek word used for
+                “church” in the New Testament is the word ekklesia. Ekklesia refers to people assembled together. It was
+                used of political gatherings and various other council meetings or assemblies. The emphasis of the word
+                is on the individual people gathered together. By using this word for the Church, the New Testament
+                writers are saying that an important feature concerning the nature of the church is people not
+                institution. The church is made up of people redeemed in Christ alone and called together for the
+                purpose of serving Christ. So then, people are central, not buildings and programs. This is important
+                because if we fail to understand the nature of the Church we will fail to understand the mission of the
+                church, and in turn we will fail to understand “ministry”.</p>
+              <p style="font-size: 1.25em;">At the end of Acts chapter 2 (2:42-47) Luke gives us. glimpse into the life
+                and ministry of the early church. We see a similar picture at the end of chapter 4. (4:32-37) Building
+                on the image of the church being the “Bride of Christ”, we see four activities in Acts 2:42-47 that form
+                the ministry of a church. Think of the acrostic WIFE. (Bride = Wife)</p>
+              <p style="font-size: 1.25em;">All four ministries, worship, instruction, fellowship, and evangelism are of
+                vital importance. You can’t focus on one at the expense of another. All four are the heart and soul of
+                the ministry of a church. How they are carried out in a local church depends on the context, culture,
+                and the spiritual gifts of the people of the church. All four focus on people and not institutions or
+                programs. All four pursued by a church for the glory of God alone will bring blessings from God.</p>
+              <p style="font-size: 1.25em;">Paul makes an incredible statement in Ephesians 4:15-16. He says that the
+                church, the body, is growing up in maturity in Christ, and growth comes when every joint (member) is
+                doing what God has gifted them to do. Ministry is from the bottom up, not the top down. Ministry begins
+                with the grace of God saving, changing, and gifting a person and calling them to join a local body of
+                believers where they are equipped for the work of the ministry and given the opportunity to use their
+                gifts. The leadership of a church does not create ministry for the members to do. God opens the door to
+                ministry opportunities and the leadership of the church leads the congregation into ministry. All of
+                this is undergirded by the Holy Spirit taking the Word of God and uniting and equipping members for
+                ministry.</p>
+              <div style="width: 100%; text-align: right;">
+                <a href="https://bfm.sbc.net/bfm2000/" target="_blank" class="btn btn-info">For more information about
+                  this</a>
+              </div>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <div style="width: 100%; text-align: center;">
+          <h1>Meet our staff</h1>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-md-4 col-sm-12">
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 100%; float: left; margin: 10px; border-radius: 20px;">
+          <CardBody>
+            <CardText>
+              <p>We have a dedicated staff that is here to serve both the church, body of Christ, and our entire
+                community.</p>
+              <p>If there is anything we can do for you, please reach out to the church office, or use the convienient
+                contact form on our home page to let us know!</p>
+              <p>Normal Office Hours<br /><br />&nbsp;&nbsp;Monday - Thursday<br />&nbsp;&nbsp;&nbsp;&nbsp;8:30 am -
+                4:30 pm<br /><br />&nbsp;&nbsp;Friday - Sunday<br />&nbsp;&nbsp;&nbsp;&nbsp;Closed (By apointment only)
+              </p>
+            </CardText>
+            <CardFooter>
+              +1 (502) 543-4101
+            </CardFooter>
+          </CardBody>
+        </Card>
+      </div>
+      <div class="col-md-8 col-sm-12">
+        <Card Class="mb-4"
+          Style="background: rgba(255,255,255,0.6); width: 14em; float: left; margin: 10px; border-radius: 20px;">
+          <div style="width: 100%; text-align: center;">
+            <img class="rounded-top" style="height: 100px; margin-top: 10px; border-radius: 50px;"
+              src="img/staff/trayearnhart.jpeg" />
+          </div>
+          <CardBody>
+            <CardText Style="text-align: center;">
+              <p style="text-size: 1.2em;">Tray Earnhart</p>
+            </CardText>
+            <CardFooter>
+              Senior Pastor
+            </CardFooter>
+          </CardBody>
+        </Card>
+        @if (staffMembers != null)
+        {
+          @foreach (var staff in staffMembers)
+          {
+            <Card Class="mb-4"
+              Style="background: rgba(255,255,255,0.6); width: 14em; float: left; margin: 10px; border-radius: 20px;">
+              <div style="width: 100%; text-align: center;">
+                <img class="rounded-top" style="height: 100px; margin-top: 10px; border-radius: 50px;"
+                  src="@staff.imageUrl" />
+              </div>
+              <CardBody>
+                <CardText Style="text-align: center;">
+                  <p style="text-size: 1.2em;">@staff.Title</p>
+                </CardText>
+                <CardFooter>
+                  @staff.Summary
+                </CardFooter>
+              </CardBody>
+            </Card>
+          }
+        }
+      </div>
+    </div>
+  </div>
+  <Footer />
+</main>
+
+@code {
+  private StaffMembers[]? staffMembers;
+
+  protected override async Task OnInitializedAsync()
+  {
+    staffMembers = await Http.GetFromJsonAsync<StaffMembers[]>("data/staff.json");
+  }
+
+  public class StaffMembers
+  {
+    public string? Title { get; set; }
+    public string? Summary { get; set; }
+    public string? imageUrl { get; set; }
+  }
+}
