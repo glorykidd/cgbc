@@ -4,7 +4,8 @@ name: Deploy CGBC Web
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["master"]
+    branches: ["main"]
+    paths: [ cgbc.new/** ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
