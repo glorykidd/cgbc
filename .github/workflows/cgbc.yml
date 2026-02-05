@@ -56,11 +56,4 @@ jobs:
           cd cgbc.new/cgbcWeb
           dotnet build
           dotnet publish -c Release -o C:/www-root/cedargrovebaptist.church      
-      - name: Create Release
-        uses: ncipollo/release-action@v1.14.0
-        with:
-          removeArtifacts: true
-          tag: cgbc-${{ steps.buildid.outputs.formattedTime }}
-          name: "Cedar Grove Baptist Church"
-          bodyFile: C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt
           
