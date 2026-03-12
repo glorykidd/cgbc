@@ -3,12 +3,12 @@
 <div style="@ContainerStyle">
     <Carousel Autoplay="CarouselAutoPlay.StartOnPageLoad" ShowPreviousNextControls="false">
         <CarouselItem Active="true">
-            <Image Src="@FirstImage" style="@ImageStyle" />
+            <img src="@FirstImage" style="@ImageStyle" loading="lazy" alt="" />
         </CarouselItem>
         @foreach (var slide in Images)
         {
             <CarouselItem>
-                <Image Src="@slide.ImageUrl" style="@ImageStyle" />
+                <img src="@slide.ImageUrl" style="@ImageStyle" loading="lazy" alt="" />
             </CarouselItem>
         }
     </Carousel>
@@ -19,6 +19,6 @@
     [Parameter, EditorRequired] public List<ImageSlide> Images { get; set; } = [];
     [Parameter] public int Height { get; set; } = 600;
 
-    private string ContainerStyle => $"height: {Height}px; width: 100%; text-align: center; margin-bottom: 50px;";
-    private string ImageStyle => $"height: {Height}px; border-radius: 20px;";
+    private string ContainerStyle => "width: 100%; text-align: center; margin-bottom: 50px;";
+    private string ImageStyle => $"height: {Height}px; width: 100%; object-fit: cover; border-radius: 20px;";
 }

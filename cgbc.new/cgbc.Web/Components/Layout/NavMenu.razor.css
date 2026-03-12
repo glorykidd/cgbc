@@ -6,9 +6,9 @@
 }
 
 .image-logo {
-    height: 40px;
+    height: 50px;
     width: auto;
-    max-width: 250px;
+    max-width: 312px;
     object-fit: contain;
     border-radius: 10px;
 }
