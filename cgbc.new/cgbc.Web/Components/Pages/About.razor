@@ -14,16 +14,9 @@
   </div>
 </section>
 
-<main class="container">
-  <div class="container">
-    <div class="row">
-      <div class="col-12">&nbsp;</div>
-    </div>
-    <div class="row">
-      <div class="col-12">&nbsp;</div>
-    </div>
-    <div class="row">
-      <div class="col-sm-12">
+<main class="container py-4">
+    <div class="row mb-4">
+      <div class="col-12">
         <Card TextAlignment="Alignment.Start"
           style="background: rgba(185, 242, 227, 0.5); border: 0px solid blue; border-radius: 20px;">
           <CardBody>
@@ -41,11 +34,8 @@
         </Card>
       </div>
     </div>
-    <div class="row">
-      <div class="col-12">&nbsp;</div>
-    </div>
-    <div class="row">
-      <div class="col-sm-12">
+    <div class="row mb-4">
+      <div class="col-12">
         <Card TextAlignment="Alignment.Start"
           style="background: rgba(255, 255, 255, 0.5); border: 0px solid blue; border-radius: 20px;">
           <CardBody>
@@ -91,31 +81,23 @@
         </Card>
       </div>
     </div>
-    <div class="row">
-      <div class="col-12">&nbsp;</div>
-    </div>
-    <div class="row">
-      <div class="col-12">
-        <div style="width: 100%; text-align: center;">
-          <h1>Meet our staff</h1>
-        </div>
+    <div class="row mb-3">
+      <div class="col-12 text-center">
+        <h1>Meet our staff</h1>
       </div>
     </div>
-    <div class="row">
-      <div class="col-12">&nbsp;</div>
-    </div>
-    <div class="row" style="overflow: hidden;">
-      <div class="col-md-4 col-sm-12">
-        <Card Class="mb-4"
-          Style="background: rgba(255,255,255,0.6); width: 100%; float: left; margin: 10px; border-radius: 20px;">
+    <div class="row mb-4">
+      <div class="col-lg-4 col-md-5 col-12 mb-3">
+        <Card Class="h-100"
+          Style="background: rgba(255,255,255,0.6); border-radius: 20px;">
           <CardBody>
             <CardText>
               <p>We have a dedicated staff that is here to serve both the church, body of Christ, and our entire
                 community.</p>
-              <p>If there is anything we can do for you, please reach out to the church office, or use the convienient
+              <p>If there is anything we can do for you, please reach out to the church office, or use the convenient
                 contact form on our home page to let us know!</p>
               <p>Normal Office Hours<br /><br />&nbsp;&nbsp;Monday - Thursday<br />&nbsp;&nbsp;&nbsp;&nbsp;8:30 am -
-                4:30 pm<br /><br />&nbsp;&nbsp;Friday - Sunday<br />&nbsp;&nbsp;&nbsp;&nbsp;Closed (By apointment only)
+                4:30 pm<br /><br />&nbsp;&nbsp;Friday - Sunday<br />&nbsp;&nbsp;&nbsp;&nbsp;Closed (By appointment only)
               </p>
             </CardText>
             <CardFooter>
@@ -124,43 +106,31 @@
           </CardBody>
         </Card>
       </div>
-      <div class="col-md-8 col-sm-12">
-        <Card Class="mb-4"
-          Style="background: rgba(255,255,255,0.6); width: 14em; float: left; margin: 10px; border-radius: 20px;">
-          <div style="width: 100%; text-align: center;">
-            <img class="rounded-top" style="height: 100px; margin-top: 10px; border-radius: 50px;"
-              src="img/staff/trayearnhart.jpeg" alt="Tray Earnhart" loading="lazy" />
-          </div>
-          <CardBody>
-            <CardText Style="text-align: center;">
-              <p style="text-size: 1.2em;">Tray Earnhart</p>
-            </CardText>
-            <CardFooter>
-              Senior Pastor
-            </CardFooter>
-          </CardBody>
-        </Card>
-        @foreach (var staff in staffMembers)
-        {
-          <Card Class="mb-4"
-            Style="background: rgba(255,255,255,0.6); width: 14em; float: left; margin: 10px; border-radius: 20px;">
-            <div style="width: 100%; text-align: center;">
-              <img class="rounded-top" style="height: 100px; margin-top: 10px; border-radius: 50px;"
-                src="@staff.ImageUrl" alt="@staff.Name" loading="lazy" />
+      <div class="col-lg-8 col-md-7 col-12">
+        <div class="row">
+          @foreach (var staff in staffMembers)
+          {
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-4 col-6 mb-3">
+              <Card Class="h-100"
+                Style="background: rgba(255,255,255,0.6); border-radius: 20px;">
+                <div class="text-center pt-2">
+                  <img class="rounded-circle" style="height: 100px; width: 100px; object-fit: cover;"
+                    src="@staff.ImageUrl" alt="@staff.Name" loading="lazy" />
+                </div>
+                <CardBody>
+                  <CardText Style="text-align: center;">
+                    <p style="font-size: 1.1em; margin-bottom: 0;">@staff.Name</p>
+                  </CardText>
+                  <CardFooter Style="text-align: center;">
+                    @staff.Role
+                  </CardFooter>
+                </CardBody>
+              </Card>
             </div>
-            <CardBody>
-              <CardText Style="text-align: center;">
-                <p style="text-size: 1.2em;">@staff.Name</p>
-              </CardText>
-              <CardFooter>
-                @staff.Role
-              </CardFooter>
-            </CardBody>
-          </Card>
-        }
+          }
+        </div>
       </div>
     </div>
-  </div>
 </main>
 
 @code {
