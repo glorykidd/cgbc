@@ -1,0 +1,110 @@
+@page "/"
+@inject ContentService ContentService
+
+<SeoHead Page="home" PagePath="/" />
+
+<section class="hero-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 d-none d-md-block">
+        <h1>Cedar Grove Baptist Church</h1>
+        <p>Welcome! We invite you and your family to join us! Find out more below.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+  <div class="container">
+    <div class="row">
+      <div class="col-2 d-none d-md-block" style="text-align: center; padding: 20px;">
+        <a href="https://www.facebook.com/cedargrove4900" target="_blank"><img src="img/facebook-icon.png"
+            style="width: 125px; height: 125px; border-radius: 20px;" alt="Facebook" width="125" height="125" /></a>
+      </div>
+      <div class="col-md-8 col-sm-12">
+        <HomeCarousel Slides="sliderContents" />
+      </div>
+      <div class="col-2 d-none d-md-block" style="text-align: center; padding: 20px;">
+        <a href="https://www.youtube.com/channel/UC9klpwpBFYOrF8QXkz8sVfg/videos" target="_blank"><img
+            src="img/youtube-icon.png" style="width: 125px; height: 125px; border-radius: 20px;" alt="YouTube" width="125" height="125" /></a>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <iframe style="width: 100%; height: 425px; border-radius: 25px;" class="embed-responsive-item"
+          src="https://www.youtube.com/embed/m_vT4vS6lzc?playlist=m_vT4vS6lzc&loop=1&mute=0&showinfo=0&controls=0&start=0"
+          allowfullscreen loading="lazy" title="Cedar Grove Baptist Church"></iframe>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <Card TextAlignment="Alignment.Start"
+          style="background: rgba(255, 255, 255, 0.6); border: 0px solid blue; border-radius: 20px;">
+          <CardBody>
+            <CardTitle>Welcome to Cedar Grove Baptist</CardTitle>
+            <CardText>
+              <p>Thank you for visiting our site!<br /><br />We invite you to join us in worship on the Lord's Day as we
+                worship our great God, and wonderful savior in the Lord Jesus Christ, through the power of the Holy
+                Spirit.<br /><br />If you have any questions you can call the church office &nbsp;502-543-4101&nbsp;or
+                fill out the connect form.</p>
+            </CardText>
+            <CardFooter>
+              Tray Earnhart (Senior Pastor)
+            </CardFooter>
+          </CardBody>
+        </Card><br />
+        <div style="width: 100%; text-align: center;"><a
+            href="https://docs.google.com/forms/d/e/1FAIpQLSfONveAuzOJlA2H8E-F9wh8RQaFmXCe5aROzF6Qb-dIC1Jv_Q/viewform"
+            target="_blank" class="btn btn-primary">Connect With Us</a></div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <Card TextAlignment="Alignment.Center"
+          style="background: rgba(255, 255, 255, 0.6); border: 0px solid blue; border-radius: 20px;">
+          <CardBody>
+            <CardTitle>Cedar Grove Christian Academy</CardTitle>
+            <CardText>
+              <img src="img/grad-cap.png" style="width: 175px; float: right;" alt="Graduation cap" loading="lazy" />
+              <p>We seek to educate students using all the academic disciplines, and to engage students in the pursuit
+                of God's truth in all spheres of life.<br /><br />Learn how you can help!</p>
+            </CardText>
+          </CardBody>
+        </Card><br />
+        <div style="width: 100%; text-align: center;"><a href="https://www.cedargrovechristianacademy.org"
+            target="_blank" class="btn btn-primary">Find out
+            more</a></div><br />
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <Card TextAlignment="Alignment.Center"
+          style="background: rgba(255,255,255,0.6); border: 0px solid blue; border-radius: 20px;">
+          <CardBody>
+            <CardTitle>Operation Christmas Child</CardTitle>
+            <CardText>
+              <img src="img/occ-logo-color.jpg" style="width: 150px; float: left;" alt="Operation Christmas Child" loading="lazy" />
+              <p>Samaritan's Purse is a nondenominational evangelical Christian organization providing spiritual and
+                physical aid to hurting people around the world. The organization serves the Church worldwide to promote
+                the Gospel of the Lord Jesus Christ.</p>
+            </CardText>
+          </CardBody>
+        </Card><br />
+        <div style="width: 100%; text-align: center;"><a
+            href="https://build-a-shoebox.samaritanspurse.org/view/25b918d0-7644-4604-92aa-73feb9562128"
+            target="_blank" class="btn btn-primary">Build your shoebox here</a></div><br />
+      </div>
+    </div>
+  </div>
+</main>
+
+@code {
+  private List<SliderContent> sliderContents = [];
+
+  protected override void OnInitialized()
+  {
+    sliderContents = ContentService.GetSliderContent();
+  }
+}

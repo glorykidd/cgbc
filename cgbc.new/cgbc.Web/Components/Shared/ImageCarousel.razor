@@ -1,0 +1,24 @@
+@rendermode InteractiveServer
+
+<div style="@ContainerStyle">
+    <Carousel Autoplay="CarouselAutoPlay.StartOnPageLoad" ShowPreviousNextControls="false">
+        <CarouselItem Active="true">
+            <img src="@FirstImage" style="@ImageStyle" loading="lazy" alt="" />
+        </CarouselItem>
+        @foreach (var slide in Images)
+        {
+            <CarouselItem>
+                <img src="@slide.ImageUrl" style="@ImageStyle" loading="lazy" alt="" />
+            </CarouselItem>
+        }
+    </Carousel>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public string FirstImage { get; set; } = "";
+    [Parameter, EditorRequired] public List<ImageSlide> Images { get; set; } = [];
+    [Parameter] public int Height { get; set; } = 600;
+
+    private string ContainerStyle => "width: 100%; text-align: center; margin-bottom: 50px;";
+    private string ImageStyle => $"height: {Height}px; width: 100%; object-fit: cover; border-radius: 20px;";
+}

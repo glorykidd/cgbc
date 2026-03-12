@@ -1,0 +1,32 @@
+@inject ContentService ContentService
+
+<PageTitle>@Meta.Title</PageTitle>
+<HeadContent>
+    <meta name="description" content="@Meta.Description" />
+    <meta name="keywords" content="@Meta.Keywords" />
+    @if (!string.IsNullOrEmpty(Meta.CanonicalUrl))
+    {
+        <link rel="canonical" href="@Meta.CanonicalUrl" />
+    }
+    <!-- Open Graph -->
+    <meta property="og:title" content="@Meta.Title" />
+    <meta property="og:description" content="@Meta.Description" />
+    <meta property="og:image" content="https://cedargrovebaptist.church@(Meta.OgImage)" />
+    <meta property="og:url" content="https://cedargrovebaptist.church@(PagePath)" />
+    <meta property="og:type" content="@Meta.OgType" />
+    <meta property="og:site_name" content="Cedar Grove Baptist Church" />
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@Meta.Title" />
+    <meta name="twitter:description" content="@Meta.Description" />
+    <meta name="twitter:image" content="https://cedargrovebaptist.church@(Meta.OgImage)" />
+    <!-- Structured Data -->
+    <script type="application/ld+json">@((MarkupString)SeoService.GetChurchJsonLd())</script>
+</HeadContent>
+
+@code {
+    [Parameter] public string Page { get; set; } = "home";
+    [Parameter] public string PagePath { get; set; } = "/";
+
+    private SeoMetadata Meta => ContentService.GetSeoMetadata(Page);
+}

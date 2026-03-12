@@ -1,0 +1,35 @@
+@rendermode InteractiveServer
+
+<Carousel Autoplay="CarouselAutoPlay.StartOnPageLoad" ShowPreviousNextControls="false">
+    <CarouselItem Interval="10000" Active="true">
+        <Card TextAlignment="Alignment.Center"
+            style="background: rgba(255,255,255,0.4); border: 0px solid blue; border-radius: 20px; height: 300px;">
+            <CardBody>
+                <CardText>
+                    <div style="width: 100%; text-align: center;"><img src="img/ministry-slide-6.png"
+                        style="height: 125px; padding-top: 50px; padding-bottom: 10px;" loading="lazy" /></div>
+                    <h4 style="padding-top: 20px;">International Mission Board (IMB)</h4>
+                    <p>Southern Baptist Convention</p>
+                </CardText>
+            </CardBody>
+        </Card>
+    </CarouselItem>
+    @foreach (var slide in Slides)
+    {
+        <CarouselItem Interval="10000">
+            <Card TextAlignment="Alignment.Center"
+                style="background: rgba(255,255,255,0.4); border: 0px solid blue; border-radius: 20px; height: 300px;">
+                <CardBody>
+                    <div style="width: 100%; text-align: center;"><img src="@slide.ImageUrl"
+                        style="height: 125px; padding-top: 50px; padding-bottom: 10px;" loading="lazy" /></div>
+                    <h4 style="padding-top: 20px;">@slide.Title</h4>
+                    <p>@slide.Summary</p>
+                </CardBody>
+            </Card>
+        </CarouselItem>
+    }
+</Carousel>
+
+@code {
+    [Parameter, EditorRequired] public List<MinistrySliderContent> Slides { get; set; } = [];
+}

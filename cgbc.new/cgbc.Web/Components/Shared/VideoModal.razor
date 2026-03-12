@@ -1,0 +1,24 @@
+@rendermode InteractiveServer
+
+<Modal @ref="modal" Title="Meant-To-Be Miracle Baby, Isreal's Story" IsVerticallyCentered="true"
+    Fullscreen="ModalFullscreen.MediumDown" Size="ModalSize.Large">
+    <BodyTemplate>
+        <div class="row">
+            <div class="col-12"><iframe width="560" height="315"
+                src="https://www.youtube.com/embed/KKw6HyUt92k?si=W1DBu87_XlpsOGNx"
+                title="Isreal's Story" frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                referrerpolicy="strict-origin-when-cross-origin" allowfullscreen loading="lazy"></iframe></div>
+        </div>
+    </BodyTemplate>
+</Modal>
+<Button Color="ButtonColor.Primary" @onclick="OnShowModalClick">Watch the video</Button>
+
+@code {
+    private Modal modal = default!;
+
+    private async Task OnShowModalClick()
+    {
+        await modal.ShowAsync();
+    }
+}
