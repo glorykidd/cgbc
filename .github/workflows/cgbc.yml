@@ -1,4 +1,4 @@
-# Simple workflow for deploying static content to GitHub Pages
+# Workflow for deploying CGBC SSR web application
 name: Deploy CGBC Web
 permissions:
   contents: read
@@ -53,9 +53,17 @@ jobs:
           Copy-Item C:/www-root/cedargrovebaptist.church/* -Destination C:/deployment-stage/cgbc/${{ steps.buildid.outputs.formattedTime }}/ -Recurse
           Compress-Archive -Path "C:/deployment-stage/cgbc/${{ steps.buildid.outputs.formattedTime }}/*" -Update -DestinationPath C:/backups/cgbc-${{ steps.buildid.outputs.formattedTime }}.zip -CompressionLevel "Fastest"
           Remove-Item -Path C:/deployment-stage/cgbc/${{ steps.buildid.outputs.formattedTime }} -Recurse
+      - name: Stop IIS Site
+        run: |
+          Import-Module WebAdministration -ErrorAction SilentlyContinue
+          Stop-WebSite -Name "cedargrovebaptist.church" -ErrorAction SilentlyContinue
+          Start-Sleep -Seconds 2
       - name: Deploy New Code
         run: |
-          cd cgbc.new/cgbcWeb
+          cd cgbc.new/cgbc.Web
           dotnet build
-          dotnet publish -c Release -o C:/www-root/cedargrovebaptist.church      
-          
+          dotnet publish -c Release -o C:/www-root/cedargrovebaptist.church
+      - name: Start IIS Site
+        run: |
+          Import-Module WebAdministration -ErrorAction SilentlyContinue
+          Start-WebSite -Name "cedargrovebaptist.church" -ErrorAction SilentlyContinue

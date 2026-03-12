@@ -1,0 +1,83 @@
+@page "/ministries"
+@inject ContentService ContentService
+
+<style>
+  blockquote {
+    quotes: "\201C" "\201D" "\2018" "\2019";
+    font-style: italic;
+    margin-left: 15px;
+  }
+
+  blockquote::before {
+    content: open-quote;
+    font-size: 1.25em;
+    color: #0a0909;
+  }
+</style>
+
+<SeoHead Page="ministries" PagePath="/ministries" />
+
+<section class="hero-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-12 d-none d-md-block">
+        <h1>Cedar Grove Baptist Church</h1>
+        <p>We <i>are</i> Missions</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container" style="height: 100%;">
+  <div class="container">
+    <div class="row">
+      <div class="col-sm-12 col-md-6">
+        <Card TextAlignment="Alignment.Start"
+          style="background: rgba(255, 255, 255, 0.6); border: 0px solid blue; border-radius: 20px; height: 300px; overflow: scroll;">
+          <CardBody>
+            <CardTitle>We are missions!</CardTitle>
+            <CardText>
+              <p>We at Cedar Grove are committed to fulfilling the Great Commission found in Matthew 28:19.
+              <blockquote>
+                Therefore go and make disciples of all nations, baptizing them in the name of the Father and of the
+                Son and of the Holy Spirit.
+              </blockquote>
+              Annually we take up offerings to support mission organizations. In December we collect money for
+              International Missionaries with the International Mission Board through their Lottie Moon Offering. We
+              also commit to supporting other missionaries through monthly donations.</p>
+            </CardText>
+          </CardBody>
+        </Card>
+      </div>
+      <div class="col-sm-12 col-md-6">
+        <MinistryCarousel Slides="sliderContents" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+    <div class="row">
+      <div class="col-12">
+        <MinistryTabs ActiveTab="activeTab" />
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-12">&nbsp;</div>
+    </div>
+  </div>
+  <Footer />
+</main>
+
+@code {
+  private List<MinistrySliderContent> sliderContents = [];
+
+  [SupplyParameterFromQuery(Name = "p")]
+  public int? P { get; set; }
+
+  private int activeTab => P ?? 0;
+
+  protected override void OnInitialized()
+  {
+    sliderContents = ContentService.GetMinistrySliderContent();
+  }
+}

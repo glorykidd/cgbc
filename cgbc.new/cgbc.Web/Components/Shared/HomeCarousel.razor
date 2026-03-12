@@ -1,0 +1,54 @@
+@rendermode InteractiveServer
+
+<Carousel Autoplay="CarouselAutoPlay.StartOnPageLoad" ShowPreviousNextControls="false">
+    <CarouselItem Active="true" Interval="10000">
+        <Card TextAlignment="Alignment.Center"
+            style="background: rgba(255,255,255,0.6); border: 1px solid blue; border-radius: 20px; height: 225px;">
+            <CardBody>
+                <CardTitle>Weekly Service Times</CardTitle>
+                <CardText>
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-6">
+                                <b>Sunday School</b> – 9:30 am<br />
+                                <b>Morning Worship</b> – 10:45 am<br /><br />
+                                <b>Wednesday Evening</b>​ – 6:30 pm
+                            </div>
+                            <div class="col-6">
+                                <b>Sunday Evening</b> – 6:00 pm<br />
+                                <i>(no evening service 3rd Sundays)</i><br /><br />
+                                <a href="/calendar" class="btn btn-primary">Calendar</a>
+                            </div>
+                        </div>
+                    </div>
+                </CardText>
+                <CardFooter>
+                    Youth and Childrens activities follow the same schedule
+                </CardFooter>
+            </CardBody>
+        </Card>
+    </CarouselItem>
+    @foreach (var slide in Slides)
+    {
+        <CarouselItem Interval="10000">
+            <Card TextAlignment="Alignment.Center"
+                style="background: rgba(255,255,255,0.6); border: 1px solid blue; border-radius: 20px; height: 225px;">
+                <CardBody>
+                    <CardTitle>@slide.Title</CardTitle>
+                    <CardText>
+                        <p>@slide.Summary<br /><br />
+                            <a href="@slide.Url" class='btn btn-primary'>@slide.ButtonText</a>
+                        </p>
+                    </CardText>
+                    <CardFooter>
+                        @slide.Footer
+                    </CardFooter>
+                </CardBody>
+            </Card>
+        </CarouselItem>
+    }
+</Carousel>
+
+@code {
+    [Parameter, EditorRequired] public List<SliderContent> Slides { get; set; } = [];
+}
