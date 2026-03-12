@@ -1,29 +1,30 @@
 # Cedar Grove Baptist Church Website
 
-A modern church website built with .NET 10.0 Blazor WebAssembly, featuring automated deployment and static content management.
+A modern church website built with .NET 10.0 Blazor Static SSR, featuring server-side rendering for SEO, interactive components via SignalR, and automated deployment to IIS.
 
 ## Overview
 
-The Cedar Grove Baptist Church (CGBC) website is a single-page application (SPA) that provides information about the church's ministries, staff, events, and sermons. The application uses Blazor WebAssembly for client-side rendering and loads all content from static JSON files, eliminating the need for a backend database.
+The Cedar Grove Baptist Church (CGBC) website uses Blazor Static SSR to deliver fully-rendered HTML pages for optimal SEO and performance. Interactive components (carousels, tabs, modals) use `@rendermode InteractiveServer` via SignalR, eliminating the need to ship a .NET runtime to the browser. Content is managed through markdown files with YAML frontmatter.
 
 ## Tech Stack
 
 ### Frontend
 - **.NET 10.0** - Latest .NET framework
-- **Blazor WebAssembly** - Client-side SPA framework
+- **Blazor Static SSR** - Server-side rendered pages with interactive islands
 - **Blazor Bootstrap 3.5.0** - Bootstrap component library for Blazor
 - **Bootstrap 5.3.7** - Responsive CSS framework
 - **Bootstrap Icons 1.13.1** - Icon library
-- **Chart.js 4.0.1** - Data visualization library
-- **Google Analytics** - Website analytics
+- **Google Analytics** - Website analytics (G-2SYKHRVV88)
 
 ### Backend
-- **ASP.NET Core Minimal API** (.NET 10.0) - Proof of concept, not actively used
-- **Microsoft.AspNetCore.OpenApi** - API documentation support
+- **ASP.NET Core** (.NET 10.0) - SSR host with Kestrel
+- **Markdig** - Markdown processing with YAML frontmatter
+- **Response Compression** - Gzip/Brotli compression middleware
+- **Static File Caching** - 7-day cache headers for images/CSS
 
 ### Infrastructure
-- **Self-hosted Windows Server** - Production hosting
-- **GitHub Actions** - CI/CD pipeline
+- **Self-hosted Windows Server** - Production hosting via IIS + ASP.NET Core Module (ANCM)
+- **GitHub Actions** - CI/CD pipeline with IIS stop/start for zero-downtime deploys
 - **PowerShell** - Deployment automation scripts
 
 ## Project Structure
@@ -31,65 +32,92 @@ The Cedar Grove Baptist Church (CGBC) website is a single-page application (SPA)
 ```
 cgbc/
 ├── cgbc.new/
-│   ├── cgbc.sln                      # Visual Studio solution file
-│   ├── cgbcWeb/                      # Main Blazor WebAssembly application
-│   │   ├── Pages/                    # Razor page components (8 pages)
-│   │   │   ├── Home.razor            # Homepage with carousel
-│   │   │   ├── About.razor           # About the church
-│   │   │   ├── Ministries.razor      # Ministry listings
-│   │   │   ├── Sermons.razor         # Sermon archive
-│   │   │   ├── Calendar.razor        # Events calendar
-│   │   │   ├── Churchindialogue.razor
-│   │   │   ├── Menonmission.razor    # Men's ministry
-│   │   │   └── Womennonmission.razor # Women's ministry
-│   │   ├── Layout/                   # Shared layout components
-│   │   │   ├── MainLayout.razor
-│   │   │   ├── NavMenu.razor
-│   │   │   └── Footer.razor
+│   ├── cgbc.sln                          # Visual Studio solution file
+│   ├── cgbc.Web/                         # Main Blazor SSR application
+│   │   ├── Components/
+│   │   │   ├── App.razor                 # Root HTML shell (replaces index.html)
+│   │   │   ├── Routes.razor              # Router component
+│   │   │   ├── _Imports.razor            # Global usings
+│   │   │   ├── Layout/
+│   │   │   │   ├── MainLayout.razor      # Flexbox layout with sticky footer
+│   │   │   │   ├── NavMenu.razor         # Navigation (Bootstrap native toggle)
+│   │   │   │   └── Footer.razor          # Shared footer
+│   │   │   ├── Pages/                    # 8 Razor page components (Static SSR)
+│   │   │   │   ├── Home.razor
+│   │   │   │   ├── About.razor
+│   │   │   │   ├── Ministries.razor
+│   │   │   │   ├── Sermons.razor
+│   │   │   │   ├── Calendar.razor
+│   │   │   │   ├── Churchindialogue.razor
+│   │   │   │   ├── Menonmission.razor
+│   │   │   │   └── Womenonmission.razor
+│   │   │   └── Shared/                   # Interactive components (SignalR)
+│   │   │       ├── SeoHead.razor         # Meta tags, OG, JSON-LD
+│   │   │       ├── HomeCarousel.razor    # @rendermode InteractiveServer
+│   │   │       ├── MinistryCarousel.razor
+│   │   │       ├── MinistryTabs.razor
+│   │   │       ├── ImageCarousel.razor
+│   │   │       └── VideoModal.razor
+│   │   ├── Services/
+│   │   │   ├── ContentService.cs         # Reads markdown + YAML frontmatter
+│   │   │   └── SeoService.cs             # Schema.org JSON-LD generation
+│   │   ├── Models/
+│   │   │   ├── StaffMember.cs
+│   │   │   ├── SliderContent.cs
+│   │   │   ├── MinistrySliderContent.cs
+│   │   │   ├── ImageSlide.cs
+│   │   │   └── SeoMetadata.cs
+│   │   ├── Content/                      # Markdown content files
+│   │   │   ├── staff/                    # One .md per staff member
+│   │   │   ├── ministries/               # Ministry slider + image data
+│   │   │   ├── slider/                   # Homepage carousel slides
+│   │   │   └── pages/                    # Per-page SEO metadata
+│   │   ├── Endpoints/
+│   │   │   └── SitemapEndpoint.cs        # Dynamic sitemap.xml
 │   │   ├── wwwroot/
-│   │   │   ├── data/                 # JSON content files
-│   │   │   │   ├── slider.json       # Homepage carousel
-│   │   │   │   ├── staff.json        # Staff directory
-│   │   │   │   ├── ministry.json     # Ministry listings
-│   │   │   │   ├── mens.json         # Men's ministry
-│   │   │   │   └── womens.json       # Women's ministry
-│   │   │   ├── img/                  # Static images
-│   │   │   │   ├── staff/
-│   │   │   │   ├── ministry/
-│   │   │   │   └── detail/
-│   │   │   ├── css/                  # Custom stylesheets
-│   │   │   └── index.html            # SPA entry point
-│   │   ├── Program.cs                # Application entry point
-│   │   ├── App.razor                 # Root component
-│   │   ├── _Imports.razor            # Global using statements
-│   │   └── cgbcWeb.csproj            # Project file
-│   └── cgbc.api/                     # ASP.NET Core API (unused)
-│       └── cgbc.api.csproj
+│   │   │   ├── img/                      # Static images
+│   │   │   ├── css/app.css               # Custom styles
+│   │   │   └── robots.txt
+│   │   ├── Program.cs                    # ASP.NET Core SSR host
+│   │   └── cgbc.Web.csproj
+│   └── cgbc.api/                         # ASP.NET Core API (unused)
 ├── .github/
 │   └── workflows/
-│       └── cgbc.yml                  # Deployment workflow
-├── CLAUDE.md                         # Claude Code instructions
-└── README.md                         # This file
+│       └── cgbc.yml                      # Deployment workflow
+├── CLAUDE.md                             # Claude Code instructions
+└── README.md                             # This file
 ```
 
-## Data Architecture
+## Architecture
 
-The application uses a **static content model**:
+### Static SSR with Interactive Islands
 
-1. All church data is stored in JSON files in `wwwroot/data/`
-2. Razor components use `HttpClient.GetFromJsonAsync<T>()` to load data
-3. Data is type-safe through C# model classes
-4. No database or API calls required for production
+Pages render as full HTML on the server (great for SEO). Interactive components opt-in to SignalR via `@rendermode InteractiveServer`:
 
-### Key Data Files
+- **Static SSR pages**: All 8 pages render complete HTML — search engines see full content
+- **Interactive islands**: Carousels, tabs, and modals use SignalR for client interactivity
+- **No WASM runtime**: No ~5MB .NET runtime download — pages load instantly as HTML
 
-| File | Purpose |
-|------|---------|
-| `slider.json` | Homepage carousel slides |
-| `staff.json` | Staff directory with photos |
-| `ministry.json` | Ministry organization listings |
-| `mens.json` | Men's ministry content |
-| `womens.json` | Women's ministry content |
+### Content System
+
+Content is managed through markdown files with YAML frontmatter, processed by `ContentService` using Markdig:
+
+| Content Directory | Purpose |
+|-------------------|---------|
+| `Content/staff/` | Staff member profiles (name, role, image, order) |
+| `Content/slider/` | Homepage carousel slides |
+| `Content/ministries/` | Ministry listings and image data |
+| `Content/pages/` | Per-page SEO metadata (title, description, keywords) |
+
+### SEO Features
+
+- **Full HTML in view-source** — no empty `<div id="app">`
+- **SeoHead component** on every page: `<title>`, meta description, keywords
+- **Open Graph tags** for social sharing (Facebook, Twitter)
+- **JSON-LD structured data** (Schema.org Church type)
+- **Dynamic sitemap.xml** at `/sitemap.xml`
+- **robots.txt** for search engine crawling
+- **Canonical URLs** on all pages
 
 ## Development
 
@@ -103,7 +131,7 @@ The application uses a **static content model**:
 1. **Clone the repository**
    ```bash
    git clone https://github.com/glorykidd/cgbc.git
-   cd cgbc/cgbc.new/cgbcWeb
+   cd cgbc/cgbc.new/cgbc.Web
    ```
 
 2. **Build the project**
@@ -130,7 +158,7 @@ The application uses a **static content model**:
 To publish the application manually:
 
 ```bash
-cd cgbc.new/cgbcWeb
+cd cgbc.new/cgbc.Web
 dotnet publish -c Release -o [output-path]
 ```
 
@@ -146,16 +174,17 @@ The application deploys automatically via GitHub Actions when changes are pushed
    - Checkout code
    - Generate timestamped build number
    - Create deployment manifest with commit details
-   - Backup current production
-   - Build and publish to live website
+   - Backup current production files
+   - Stop IIS site (ASP.NET Core locks DLLs)
+   - Build and publish to production directory
+   - Start IIS site
 
-### Deployment Configuration
+### Server Requirements
 
-The deployment workflow (`.github/workflows/cgbc.yml`) includes:
-- Automatic backup creation before each deployment
-- Timestamped deployment manifests
-- Changed file tracking
-- Compression of backups for storage efficiency
+- Windows Server with IIS
+- **.NET 10.0 Hosting Bundle** (includes ASP.NET Core Module for IIS)
+- IIS Application Pool configured for **No Managed Code**
+- WebSocket protocol enabled in IIS (for SignalR)
 
 ### Rollback
 
@@ -170,49 +199,25 @@ C:/backups/cgbc-[YYYY.MM.DD-HH.mm].zip
 
 To update church content:
 
-1. Edit the appropriate JSON file in `cgbc.new/cgbcWeb/wwwroot/data/`
+1. Edit the appropriate markdown file in `cgbc.new/cgbc.Web/Content/`
 2. Commit changes to `develop` branch for testing
 3. Merge to `main` to deploy automatically
 
 ### Adding New Pages
 
-1. Create a new `.razor` file in `cgbc.new/cgbcWeb/Pages/`
+1. Create a new `.razor` file in `cgbc.new/cgbc.Web/Components/Pages/`
 2. Add the `@page "/route"` directive at the top
-3. Update `NavMenu.razor` to include the navigation link
-4. Follow existing patterns for loading JSON data if needed
+3. Add `<SeoHead>` component with page-specific metadata
+4. Create a matching SEO metadata file in `Content/pages/`
+5. Update `NavMenu.razor` to include the navigation link
+6. Add the page to `SitemapEndpoint.cs`
 
 ### Adding Images
 
-Place images in the appropriate directory:
-- Staff photos: `wwwroot/img/staff/`
-- Ministry images: `wwwroot/img/ministry/`
-- Detail images: `wwwroot/img/detail/`
-
-## Project Features
-
-### Current Features
-- Responsive design with Bootstrap 5
-- Homepage carousel with custom slides
-- Staff directory with photos
-- Ministry listings and details
-- Event calendar
-- Sermon archive
-- Google Analytics integration
-
-### Architecture Highlights
-- Client-side rendering (no server load after initial page load)
-- Type-safe data models throughout
-- Component-based architecture
-- Automated deployment with safety backups
-- No database required
-
-## C# Language Features
-
-The project uses modern C# features:
-- Nullable reference types enabled
-- Implicit usings enabled
-- Top-level statements in `Program.cs`
-- Async/await patterns throughout
+Place images in the appropriate directory under `wwwroot/img/`:
+- Staff photos: `img/staff/`
+- Ministry images: `img/ministry/`
+- Detail images: `img/detail/`
 
 ## Contributing
 
