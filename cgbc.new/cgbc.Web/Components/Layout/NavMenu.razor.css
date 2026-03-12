@@ -7,6 +7,9 @@
 
 .image-logo {
     height: 40px;
+    width: auto;
+    max-width: 250px;
+    object-fit: contain;
     border-radius: 10px;
 }
 
