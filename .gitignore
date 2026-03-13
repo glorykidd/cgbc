@@ -419,3 +419,8 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+# SQLite database
+cgbc.new/cgbc.Web/Data/*.db
+cgbc.new/cgbc.Web/Data/*.db-shm
+cgbc.new/cgbc.Web/Data/*.db-wal

@@ -1,4 +1,6 @@
+using cgbc.Web.Data;
 using cgbc.Web.Services;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -7,12 +9,21 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddBlazorBootstrap();
 builder.Services.AddSingleton<ContentService>();
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<ConnectionCardService>();
 builder.Services.AddResponseCompression(options =>
 {
     options.EnableForHttps = true;
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 if (!app.Environment.IsDevelopment())
 {
