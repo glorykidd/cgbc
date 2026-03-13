@@ -8,6 +8,7 @@ public static class SitemapEndpoint
     [
         ("/", "1.0"),
         ("/about", "0.8"),
+        ("/livestream", "0.8"),
         ("/sermons", "0.8"),
         ("/ministries", "0.8"),
         ("/calendar", "0.7"),
