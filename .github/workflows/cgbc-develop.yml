@@ -1,12 +1,12 @@
 # Workflow for deploying CGBC SSR web application
-name: Deploy CGBC Web
+name: Build CGBC Web
 permissions:
   contents: read
 
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: ["main"]
+    branches: ["develop"]
     paths: [ cgbc.new/** ]
 
   # Allows you to run this workflow manually from the Actions tab
@@ -22,12 +22,12 @@ jobs:
   # Single deploy job since we're just deploying
   deploy:
     runs-on: [ self-hosted ]
-    name: Test and Deploy CGBC Web
+    name: Test and Build CGBC Web
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
         with:
-          fetch-depth: 2
+          fetch-depth: 0
       - name: Generate build number
         id: buildid
         run: |
@@ -63,27 +63,9 @@ jobs:
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "Test Results:"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "---------------------------------"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value (Get-Content -Path C:/deployment-stage/cgbc-tests-${{ steps.buildid.outputs.formattedTime }}.md)
-      - name: Create Backup
+      - name: Build CGBC application
         run: |
-          New-Item -ItemType "directory" -Path "C:/deployment-stage/cgbc/${{ steps.buildid.outputs.formattedTime }}/" -Force
-          Copy-Item C:/www-root/cedargrovebaptist.church/* -Destination C:/deployment-stage/cgbc/${{ steps.buildid.outputs.formattedTime }}/ -Recurse
-          Compress-Archive -Path "C:/deployment-stage/cgbc/${{ steps.buildid.outputs.formattedTime }}/*" -Update -DestinationPath C:/backups/cgbc-${{ steps.buildid.outputs.formattedTime }}.zip -CompressionLevel "Fastest"
-          Remove-Item -Path C:/deployment-stage/cgbc/${{ steps.buildid.outputs.formattedTime }} -Recurse
-      - name: Stop IIS Site
-        run: |
-          Import-Module WebAdministration
-          if ((Get-WebAppPoolState -Name "CedarGroveBaptist" -ErrorAction SilentlyContinue).Value -eq "Started") {
-            Stop-WebAppPool -Name "CedarGroveBaptist"
-            Start-Sleep -Seconds 3
-          }
-      - name: Deploy CGBC application
-        run: |
-          cd cgbc.new/cgbc.Web
-          dotnet publish -c Release -o C:/www-root/cedargrovebaptist.church
-      - name: Start IIS Site
-        run: |
-          Import-Module WebAdministration
-          Start-WebAppPool -Name "CedarGroveBaptist"
+          dotnet build cgbc.new/cgbc.sln --configuration Release
       - name: Email Notification
         run: |
           cd  D:/it-tools/mailer
