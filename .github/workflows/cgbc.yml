@@ -22,31 +22,47 @@ jobs:
   # Single deploy job since we're just deploying
   deploy:
     runs-on: [ self-hosted ]
-    name: Deploy CGBC Web
+    name: Test and Deploy CGBC Web
     steps:
-      - name: Checkout
+      - name: Checkout code
         uses: actions/checkout@v6
         with:
           fetch-depth: 2
-      - name: Generate Build Number
+      - name: Generate build number
         id: buildid
-        uses: josStorer/get-current-time@v2.1.2
-        with:
-          utcOffset: "00:00"
-          format: YYYY.MM.DD-HH.mm
+        run: |
+          $buildTime = (Get-Date).ToUniversalTime().ToString("yyyy.MM.dd-HH.mm")
+          echo "formattedTime=$buildTime" >> $env:GITHUB_OUTPUT
+      - name: Run tests for solution
+        run: |
+          dotnet test cgbc.new/cgbc.sln --configuration Release --logger "console;verbosity=minimal" > C:/deployment-stage/cgbc-tests-${{ steps.buildid.outputs.formattedTime }}.md 
       - name: List all changed files
         run: |
-          Set-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "Commit Item Messages:"
-          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "---------------------------------"
-          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value $(git log --format=%B -n 1 HEAD)
+          Set-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value ""
+          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "Build Results for CGBC"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value ""
-          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "---------------------------------"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "Build Number - ${{ steps.buildid.outputs.formattedTime }}"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "---------------------------------"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value ""
+          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "Commit Item Messages:"
+          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "---------------------------------"
+          $mergeCommit = git log --format=%B -n 1 HEAD
+          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value $mergeCommit
+          $parentCount = (git cat-file -p HEAD | Select-String "^parent").Count
+          if ($parentCount -gt 1) {
+            Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value ""
+            Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "Included Commits:"
+            $prCommits = git log --format="- %s" HEAD^1..HEAD^2
+            Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value ($prCommits -join "`n")
+          }
+          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value ""
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "Changed Files"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "---------------------------------"
-          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value $(git diff --name-status ORIG_HEAD..)
+          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value $(git diff --name-status HEAD~1..HEAD)
+          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value ""
+          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "Test Results:"
+          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "---------------------------------"
+          Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value (Get-Content -Path C:/deployment-stage/cgbc-tests-${{ steps.buildid.outputs.formattedTime }}.md)
       - name: Create Backup
         run: |
           New-Item -ItemType "directory" -Path "C:/deployment-stage/cgbc/${{ steps.buildid.outputs.formattedTime }}/" -Force
@@ -55,19 +71,20 @@ jobs:
           Remove-Item -Path C:/deployment-stage/cgbc/${{ steps.buildid.outputs.formattedTime }} -Recurse
       - name: Stop IIS Site
         run: |
-          Import-Module WebAdministration -ErrorAction SilentlyContinue
-          Stop-WebSite -Name "CedarGroveBaptist" -ErrorAction SilentlyContinue
-          Start-Sleep -Seconds 2
-      - name: Build and Test
-        run: |
-          cd cgbc.new/cgbc.Web
-          dotnet build
-          dotnet test ../cgbc.Web.Tests --no-restore --verbosity normal
-      - name: Deploy
+          Import-Module WebAdministration
+          if ((Get-WebAppPoolState -Name "CedarGroveBaptist" -ErrorAction SilentlyContinue).Value -eq "Started") {
+            Stop-WebAppPool -Name "CedarGroveBaptist"
+            Start-Sleep -Seconds 3
+          }
+      - name: Deploy CGBC application
         run: |
           cd cgbc.new/cgbc.Web
           dotnet publish -c Release -o C:/www-root/cedargrovebaptist.church
       - name: Start IIS Site
         run: |
-          Import-Module WebAdministration -ErrorAction SilentlyContinue
-          Start-WebSite -Name "CedarGroveBaptist" -ErrorAction SilentlyContinue
+          Import-Module WebAdministration
+          Start-WebAppPool -Name "CedarGroveBaptist"
+      - name: Email Notification
+        run: |
+          cd  D:/it-tools/mailer
+          ./SesMailer.exe --to  "David Nuckolls <david.nuckolls@glorykidd.com>" --subject "CGBC Release ${{ steps.buildid.outputs.formattedTime }}" --body C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt --format text  --from-display-name "CGBC Website"
