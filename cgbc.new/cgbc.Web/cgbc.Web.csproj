@@ -12,7 +12,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Update="Content\**\*" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="Content\**\*.md" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Update="Content\**\*.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
