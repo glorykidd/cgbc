@@ -22,6 +22,10 @@ The Cedar Grove Baptist Church (CGBC) website uses Blazor Static SSR to deliver 
 - **Response Compression** - Gzip/Brotli compression middleware
 - **Static File Caching** - 7-day cache headers for images/CSS
 
+### Testing
+- **xUnit 2.9** - Unit test framework
+- **Coverlet** - Code coverage collection
+
 ### Infrastructure
 - **Self-hosted Windows Server** - Production hosting via IIS + ASP.NET Core Module (ANCM)
 - **GitHub Actions** - CI/CD pipeline with IIS stop/start for zero-downtime deploys
@@ -67,7 +71,7 @@ cgbc/
 │   │   │   ├── MinistrySliderContent.cs
 │   │   │   ├── ImageSlide.cs
 │   │   │   └── SeoMetadata.cs
-│   │   ├── Content/                      # Markdown content files
+│   │   ├── Content/                      # Markdown + JSON content files
 │   │   │   ├── staff/                    # One .md per staff member
 │   │   │   ├── ministries/               # Ministry slider + image data
 │   │   │   ├── slider/                   # Homepage carousel slides
@@ -80,10 +84,15 @@ cgbc/
 │   │   │   └── robots.txt
 │   │   ├── Program.cs                    # ASP.NET Core SSR host
 │   │   └── cgbc.Web.csproj
+│   ├── cgbc.Web.Tests/                   # xUnit test project
+│   │   ├── Services/                     # ContentService + SeoService tests
+│   │   ├── Endpoints/                    # SitemapEndpoint tests
+│   │   └── Models/                       # Model tests
 │   └── cgbc.api/                         # ASP.NET Core API (unused)
 ├── .github/
 │   └── workflows/
-│       └── cgbc.yml                      # Deployment workflow
+│       ├── cgbc.yml                      # Production deployment (main branch)
+│       └── cgbc-develop.yml              # Build + test validation (develop branch)
 ├── CLAUDE.md                             # Claude Code instructions
 └── README.md                             # This file
 ```
@@ -146,10 +155,19 @@ Content is managed through markdown files with YAML frontmatter, processed by `C
    - HTTP: http://localhost:5287
    - HTTPS: https://localhost:7263
 
+### Running Tests
+
+```bash
+cd cgbc.new
+dotnet test
+```
+
+Tests cover ContentService, SeoService, SitemapEndpoint, and model validation using xUnit.
+
 ### Development Workflow
 
 - **Main branch**: Production branch (auto-deploys to live server)
-- **Develop branch**: Development branch for testing changes
+- **Develop branch**: Development branch (builds and runs tests on push)
 - Always create feature branches from `develop`
 - Merge to `develop` for testing, then to `main` for production
 
@@ -164,20 +182,23 @@ dotnet publish -c Release -o [output-path]
 
 ## Deployment
 
-### Automated Deployment
+### CI/CD Pipelines
 
-The application deploys automatically via GitHub Actions when changes are pushed to the `main` branch:
+Two GitHub Actions workflows run on a self-hosted Windows runner:
 
-1. **Trigger**: Push to `main` with changes in `cgbc.new/**`
-2. **Runner**: Self-hosted Windows server
-3. **Process**:
-   - Checkout code
-   - Generate timestamped build number
-   - Create deployment manifest with commit details
-   - Backup current production files
-   - Stop IIS site (ASP.NET Core locks DLLs)
-   - Build and publish to production directory
-   - Start IIS site
+**Production (`cgbc.yml`)** — triggered on push to `main` with changes in `cgbc.new/**`:
+1. Run xUnit test suite
+2. Generate timestamped build number and deployment manifest
+3. Backup current production files to `C:/backups/`
+4. Stop IIS application pool (ASP.NET Core locks DLLs)
+5. `dotnet publish` to production directory
+6. Start IIS application pool
+7. Email deployment notification
+
+**Develop (`cgbc-develop.yml`)** — triggered on push to `develop` with changes in `cgbc.new/**`:
+1. Run xUnit test suite
+2. Build solution in Release configuration
+3. Email build notification
 
 ### Server Requirements
 
