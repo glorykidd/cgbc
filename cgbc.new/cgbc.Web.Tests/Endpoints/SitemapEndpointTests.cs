@@ -54,7 +54,7 @@ public class SitemapEndpointTests
         XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
         var doc = XDocument.Parse(xml);
         var urls = doc.Descendants(ns + "url").ToList();
-        Assert.Equal(8, urls.Count);
+        Assert.Equal(9, urls.Count);
     }
 
     [Fact]
@@ -86,6 +86,7 @@ public class SitemapEndpointTests
         {
             "https://cedargrovebaptist.church/",
             "https://cedargrovebaptist.church/about",
+            "https://cedargrovebaptist.church/livestream",
             "https://cedargrovebaptist.church/sermons",
             "https://cedargrovebaptist.church/ministries",
             "https://cedargrovebaptist.church/calendar",
@@ -117,7 +118,7 @@ public class SitemapEndpointTests
         XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
         var doc = XDocument.Parse(xml);
         var lastmods = doc.Descendants(ns + "lastmod").Select(e => e.Value).ToList();
-        Assert.Equal(8, lastmods.Count);
+        Assert.Equal(9, lastmods.Count);
 
         var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
         Assert.All(lastmods, lm => Assert.Equal(today, lm));
