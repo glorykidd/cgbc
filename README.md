@@ -19,6 +19,8 @@ The Cedar Grove Baptist Church (CGBC) website uses Blazor Static SSR to deliver 
 ### Backend
 - **ASP.NET Core** (.NET 10.0) - SSR host with Kestrel
 - **Entity Framework Core** (SQLite) - Database for connection card submissions
+  - Database path resolved from `ContentRootPath` for IIS compatibility
+  - Auto-creates `Data/` directory and database on startup via EF Core migrations
 - **Markdig** - Markdown processing with YAML frontmatter
 - **Response Compression** - Gzip/Brotli compression middleware
 - **Static File Caching** - 7-day cache headers for images/CSS
@@ -214,6 +216,7 @@ Two GitHub Actions workflows run on a self-hosted Windows runner:
 - **.NET 10.0 Hosting Bundle** (includes ASP.NET Core Module for IIS)
 - IIS Application Pool configured for **No Managed Code**
 - WebSocket protocol enabled in IIS (for SignalR)
+- IIS app pool identity needs write access to the `Data/` directory (for SQLite database)
 
 ### Rollback
 
