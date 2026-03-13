@@ -47,7 +47,8 @@ jobs:
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "Changed Files"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "---------------------------------"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value $(git diff --name-status ORIG_HEAD..)
-      - name: Build New Code
+      - name: Build and Test
         run: |
           cd cgbc.new/cgbc.Web
           dotnet build
+          dotnet test ../cgbc.Web.Tests --no-restore --verbosity normal

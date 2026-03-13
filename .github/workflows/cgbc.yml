@@ -58,10 +58,14 @@ jobs:
           Import-Module WebAdministration -ErrorAction SilentlyContinue
           Stop-WebSite -Name "CedarGroveBaptist" -ErrorAction SilentlyContinue
           Start-Sleep -Seconds 2
-      - name: Deploy New Code
+      - name: Build and Test
         run: |
           cd cgbc.new/cgbc.Web
           dotnet build
+          dotnet test ../cgbc.Web.Tests --no-restore --verbosity normal
+      - name: Deploy
+        run: |
+          cd cgbc.new/cgbc.Web
           dotnet publish -c Release -o C:/www-root/cedargrovebaptist.church
       - name: Start IIS Site
         run: |
