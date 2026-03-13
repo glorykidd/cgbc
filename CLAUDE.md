@@ -115,3 +115,6 @@ When adding new pages:
 
 - **main**: Production branch (auto-deploys on push)
 - **develop**: Development branch for testing changes before merging to main
+- Always create feature/fix branches from `develop`
+- PRs must target `develop` first — never merge directly to `main`
+- After changes are validated on `develop`, merge `develop` into `main` to deploy to production
