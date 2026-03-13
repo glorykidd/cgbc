@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Cedar Grove Baptist Church (CGBC) website is a .NET 10.0 Blazor Static SSR application with server-side rendering for SEO. Interactive components (carousels, tabs, modals) use `@rendermode InteractiveServer` via SignalR. Content is managed through markdown files with YAML frontmatter and JSON files in the `Content/` directory. The site is deployed automatically to a self-hosted Windows server (IIS + ASP.NET Core Module) when changes are pushed to the `main` branch.
+Cedar Grove Baptist Church (CGBC) website is a .NET 10.0 Blazor Static SSR application with server-side rendering for SEO. Interactive components (carousels, tabs, modals, forms) use `@rendermode InteractiveServer` via SignalR. Content is managed through markdown files with YAML frontmatter and JSON files in the `Content/` directory. Connection card submissions are stored in a SQLite database via Entity Framework Core. The site is deployed automatically to a self-hosted Windows server (IIS + ASP.NET Core Module) when changes are pushed to the `main` branch.
 
 ## Solution Structure
 
@@ -17,11 +17,12 @@ cgbc.new/
 ```
 
 The Blazor SSR project (`cgbc.Web`) contains:
-- **Components/Pages/**: 9 Razor components for different routes (Home, About, Livestream, Ministries, Sermons, Calendar, etc.)
+- **Components/Pages/**: 10 Razor components for different routes (Home, About, Connect, Livestream, Ministries, Sermons, Calendar, etc.)
 - **Components/Layout/**: Shared layout components (MainLayout, NavMenu, Footer)
 - **Components/Shared/**: Reusable interactive components (SeoHead, HomeCarousel, MinistryTabs, ImageCarousel, VideoModal, MinistryCarousel)
-- **Services/**: ContentService (reads markdown + JSON content), SeoService (JSON-LD structured data)
-- **Models/**: StaffMember, SliderContent, MinistrySliderContent, ImageSlide, SeoMetadata
+- **Services/**: ContentService (reads markdown + JSON content), ConnectionCardService (form submissions), SeoService (JSON-LD structured data)
+- **Models/**: ConnectionCard, ConnectionCardForm, StaffMember, SliderContent, MinistrySliderContent, ImageSlide, SeoMetadata
+- **Data/**: AppDbContext (EF Core SQLite database context)
 - **Content/**: Markdown and JSON content files (staff/, ministries/, slider/, pages/)
 - **Endpoints/**: SitemapEndpoint (dynamic sitemap.xml)
 - **wwwroot/**: Static assets (img/, css/, robots.txt, favicon.png)
@@ -54,7 +55,7 @@ This is a **server-rendered application** with interactive islands:
 1. User requests a page - ASP.NET Core renders full HTML on the server
 2. Page components use `ContentService` (injected singleton) to load data from `Content/` directory
 3. Static pages render as pure SSR HTML (zero JS) - Calendar, Sermons, Churchindialogue, About
-4. Interactive components use `@rendermode InteractiveServer` (SignalR) - carousels, tabs, modals
+4. Interactive components use `@rendermode InteractiveServer` (SignalR) - carousels, tabs, modals, Connect form
 5. `blazor.web.js` enables enhanced navigation (SPA-like partial page swaps without full reloads)
 6. SEO metadata (meta tags, Open Graph, JSON-LD) rendered server-side via `SeoHead` component
 
@@ -77,6 +78,7 @@ This is a **server-rendered application** with interactive islands:
 - **.NET 10.0** with C# (nullable reference types enabled, implicit usings enabled)
 - **Blazor Static SSR** with InteractiveServer components (SignalR)
 - **Blazor Bootstrap** (v3.5.0) - Bootstrap component library
+- **Entity Framework Core** (SQLite) - Database for connection card submissions
 - **Markdig** - Markdown processing with YAML frontmatter
 - **Bootstrap 5.3.7** - CSS framework (CDN)
 

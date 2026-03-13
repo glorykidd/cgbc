@@ -18,6 +18,7 @@ The Cedar Grove Baptist Church (CGBC) website uses Blazor Static SSR to deliver 
 
 ### Backend
 - **ASP.NET Core** (.NET 10.0) - SSR host with Kestrel
+- **Entity Framework Core** (SQLite) - Database for connection card submissions
 - **Markdig** - Markdown processing with YAML frontmatter
 - **Response Compression** - Gzip/Brotli compression middleware
 - **Static File Caching** - 7-day cache headers for images/CSS
@@ -46,9 +47,10 @@ cgbc/
 │   │   │   │   ├── MainLayout.razor      # Flexbox layout with sticky footer
 │   │   │   │   ├── NavMenu.razor         # Navigation (Bootstrap native toggle)
 │   │   │   │   └── Footer.razor          # Shared footer
-│   │   │   ├── Pages/                    # 9 Razor page components (Static SSR)
+│   │   │   ├── Pages/                    # 10 Razor page components (Static SSR)
 │   │   │   │   ├── Home.razor
 │   │   │   │   ├── About.razor
+│   │   │   │   ├── Connect.razor         # Connection card form (InteractiveServer)
 │   │   │   │   ├── Livestream.razor
 │   │   │   │   ├── Ministries.razor
 │   │   │   │   ├── Sermons.razor
@@ -65,13 +67,18 @@ cgbc/
 │   │   │       └── VideoModal.razor
 │   │   ├── Services/
 │   │   │   ├── ContentService.cs         # Reads markdown + YAML frontmatter
+│   │   │   ├── ConnectionCardService.cs  # Connection card CRUD operations
 │   │   │   └── SeoService.cs             # Schema.org JSON-LD generation
 │   │   ├── Models/
+│   │   │   ├── ConnectionCard.cs         # Connection card entity
+│   │   │   ├── ConnectionCardForm.cs     # Form binding model with validation
 │   │   │   ├── StaffMember.cs
 │   │   │   ├── SliderContent.cs
 │   │   │   ├── MinistrySliderContent.cs
 │   │   │   ├── ImageSlide.cs
 │   │   │   └── SeoMetadata.cs
+│   │   ├── Data/
+│   │   │   └── AppDbContext.cs           # EF Core DbContext (SQLite)
 │   │   ├── Content/                      # Markdown + JSON content files
 │   │   │   ├── staff/                    # One .md per staff member
 │   │   │   ├── ministries/               # Ministry slider + image data
@@ -104,8 +111,8 @@ cgbc/
 
 Pages render as full HTML on the server (great for SEO). Interactive components opt-in to SignalR via `@rendermode InteractiveServer`:
 
-- **Static SSR pages**: All 9 pages render complete HTML — search engines see full content
-- **Interactive islands**: Carousels, tabs, and modals use SignalR for client interactivity
+- **Static SSR pages**: All 10 pages render complete HTML — search engines see full content
+- **Interactive islands**: Carousels, tabs, modals, and forms use SignalR for client interactivity
 - **No WASM runtime**: No ~5MB .NET runtime download — pages load instantly as HTML
 
 ### Content System

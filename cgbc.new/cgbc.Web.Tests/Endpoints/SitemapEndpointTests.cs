@@ -48,13 +48,13 @@ public class SitemapEndpointTests
     }
 
     [Fact]
-    public void Handle_ContainsEightUrls()
+    public void Handle_ContainsTenUrls()
     {
         var xml = GetSitemapXml();
         XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
         var doc = XDocument.Parse(xml);
         var urls = doc.Descendants(ns + "url").ToList();
-        Assert.Equal(9, urls.Count);
+        Assert.Equal(10, urls.Count);
     }
 
     [Fact]
@@ -92,7 +92,8 @@ public class SitemapEndpointTests
             "https://cedargrovebaptist.church/calendar",
             "https://cedargrovebaptist.church/churchindialogue",
             "https://cedargrovebaptist.church/menonmission",
-            "https://cedargrovebaptist.church/womenonmission"
+            "https://cedargrovebaptist.church/womenonmission",
+            "https://cedargrovebaptist.church/connect"
         };
 
         foreach (var page in expectedPages)
@@ -118,7 +119,7 @@ public class SitemapEndpointTests
         XNamespace ns = "http://www.sitemaps.org/schemas/sitemap/0.9";
         var doc = XDocument.Parse(xml);
         var lastmods = doc.Descendants(ns + "lastmod").Select(e => e.Value).ToList();
-        Assert.Equal(9, lastmods.Count);
+        Assert.Equal(10, lastmods.Count);
 
         var today = DateTime.UtcNow.ToString("yyyy-MM-dd");
         Assert.All(lastmods, lm => Assert.Equal(today, lm));
