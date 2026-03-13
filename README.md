@@ -46,9 +46,10 @@ cgbc/
 │   │   │   │   ├── MainLayout.razor      # Flexbox layout with sticky footer
 │   │   │   │   ├── NavMenu.razor         # Navigation (Bootstrap native toggle)
 │   │   │   │   └── Footer.razor          # Shared footer
-│   │   │   ├── Pages/                    # 8 Razor page components (Static SSR)
+│   │   │   ├── Pages/                    # 9 Razor page components (Static SSR)
 │   │   │   │   ├── Home.razor
 │   │   │   │   ├── About.razor
+│   │   │   │   ├── Livestream.razor
 │   │   │   │   ├── Ministries.razor
 │   │   │   │   ├── Sermons.razor
 │   │   │   │   ├── Calendar.razor
@@ -103,7 +104,7 @@ cgbc/
 
 Pages render as full HTML on the server (great for SEO). Interactive components opt-in to SignalR via `@rendermode InteractiveServer`:
 
-- **Static SSR pages**: All 8 pages render complete HTML — search engines see full content
+- **Static SSR pages**: All 9 pages render complete HTML — search engines see full content
 - **Interactive islands**: Carousels, tabs, and modals use SignalR for client interactivity
 - **No WASM runtime**: No ~5MB .NET runtime download — pages load instantly as HTML
 

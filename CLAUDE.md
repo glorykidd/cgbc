@@ -17,7 +17,7 @@ cgbc.new/
 ```
 
 The Blazor SSR project (`cgbc.Web`) contains:
-- **Components/Pages/**: 8 Razor components for different routes (Home, About, Ministries, Sermons, Calendar, etc.)
+- **Components/Pages/**: 9 Razor components for different routes (Home, About, Livestream, Ministries, Sermons, Calendar, etc.)
 - **Components/Layout/**: Shared layout components (MainLayout, NavMenu, Footer)
 - **Components/Shared/**: Reusable interactive components (SeoHead, HomeCarousel, MinistryTabs, ImageCarousel, VideoModal, MinistryCarousel)
 - **Services/**: ContentService (reads markdown + JSON content), SeoService (JSON-LD structured data)
