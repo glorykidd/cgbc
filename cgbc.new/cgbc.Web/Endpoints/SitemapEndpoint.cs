@@ -8,12 +8,14 @@ public static class SitemapEndpoint
     [
         ("/", "1.0"),
         ("/about", "0.8"),
+        ("/livestream", "0.8"),
         ("/sermons", "0.8"),
         ("/ministries", "0.8"),
         ("/calendar", "0.7"),
         ("/churchindialogue", "0.6"),
         ("/menonmission", "0.6"),
         ("/womenonmission", "0.6"),
+        ("/connect", "0.8"),
     ];
 
     public static IResult Handle()

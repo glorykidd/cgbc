@@ -1,0 +1,226 @@
+@page "/connect"
+@rendermode InteractiveServer
+@inject ConnectionCardService CardService
+
+<SeoHead Page="connect" PagePath="/connect" />
+
+<section class="hero-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <h1>Cedar Grove Baptist Church</h1>
+        <p>Connection Card</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+  <div class="container">
+    <div class="row">
+      <div class="col-1 d-none d-md-block"></div>
+      <div class="col-md-10 col-sm-12">
+        @if (submitted)
+        {
+          <div class="card text-center p-5" style="background: rgba(255,255,255,0.9); border-radius: 20px;">
+            <h2>Thank You!</h2>
+            <p class="lead">Your connection card has been submitted. We look forward to connecting with you!</p>
+            <a href="/" class="btn btn-primary mt-3">Return Home</a>
+          </div>
+        }
+        else
+        {
+          <div class="card p-4" style="background: rgba(255,255,255,0.9); border-radius: 20px;">
+            <h3 class="mb-2">We'd love to hear from you!</h3>
+            <p class="mb-4">Fill out our connection card to let us know you visited Cedar Grove Baptist Church. We'd love to connect with you and help you get involved.</p>
+            <EditForm Model="form" OnValidSubmit="HandleSubmit" FormName="connectionCard">
+              <DataAnnotationsValidator />
+
+              <div class="mb-3">
+                <label class="form-label">Email <span class="text-danger">*</span></label>
+                <InputText @bind-Value="form.Email" class="form-control" placeholder="your@email.com" />
+                <ValidationMessage For="() => form.Email" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Name <span class="text-danger">*</span></label>
+                <InputText @bind-Value="form.Name" class="form-control" placeholder="Your full name" />
+                <ValidationMessage For="() => form.Name" />
+              </div>
+
+              <div class="row mb-3">
+                <div class="col-md-5">
+                  <label class="form-label">Visit(s) <span class="text-danger">*</span></label>
+                  <InputRadioGroup @bind-Value="form.VisitStatus">
+                    @foreach (var option in visitOptions)
+                    {
+                      <div class="form-check">
+                        <InputRadio Value="@option" class="form-check-input" />
+                        <label class="form-check-label">@option</label>
+                      </div>
+                    }
+                  </InputRadioGroup>
+                  <ValidationMessage For="() => form.VisitStatus" />
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Preferred Communication <span class="text-danger">*</span></label>
+                  <InputRadioGroup @bind-Value="form.PreferredCommunication">
+                    @foreach (var option in communicationOptions)
+                    {
+                      <div class="form-check">
+                        <InputRadio Value="@option" class="form-check-input" />
+                        <label class="form-check-label">@option</label>
+                      </div>
+                    }
+                  </InputRadioGroup>
+                  <ValidationMessage For="() => form.PreferredCommunication" />
+                </div>
+                <div class="col-md-3">
+                  <label class="form-label">Contact by pastor? <span class="text-danger">*</span></label>
+                  <InputRadioGroup @bind-Value="form.WantsContact">
+                    <div class="form-check">
+                      <InputRadio Value="true" class="form-check-input" />
+                      <label class="form-check-label">Yes</label>
+                    </div>
+                    <div class="form-check">
+                      <InputRadio Value="false" class="form-check-input" />
+                      <label class="form-check-label">No</label>
+                    </div>
+                  </InputRadioGroup>
+                  <ValidationMessage For="() => form.WantsContact" />
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Address</label>
+                <InputText @bind-Value="form.Address" class="form-control" placeholder="Your mailing address" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Phone</label>
+                <InputText @bind-Value="form.Phone" class="form-control" placeholder="Your phone number" />
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label">Contact me about <span class="text-danger">*</span></label>
+                <InputRadioGroup @bind-Value="form.ContactReason">
+                  <div class="row">
+                    @foreach (var option in contactReasonOptions)
+                    {
+                      <div class="col-md-4">
+                        <div class="form-check">
+                          <InputRadio Value="@option" class="form-check-input" />
+                          <label class="form-check-label">@option</label>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </InputRadioGroup>
+                <ValidationMessage For="() => form.ContactReason" />
+              </div>
+
+              @if (form.ContactReason == "Other")
+              {
+                <div class="mb-3">
+                  <label class="form-label">Please specify</label>
+                  <InputText @bind-Value="form.ContactReasonOther" class="form-control" />
+                </div>
+              }
+
+              <div class="mb-3">
+                <label class="form-label">Prayer Requests</label>
+                <InputTextArea @bind-Value="form.PrayerRequests" class="form-control" rows="4"
+                  placeholder="Share any prayer requests here..." />
+              </div>
+
+              @if (!string.IsNullOrEmpty(errorMessage))
+              {
+                <div class="alert alert-danger">@errorMessage</div>
+              }
+
+              <div class="text-center">
+                <button type="submit" class="btn btn-primary" disabled="@isSubmitting">
+                  @if (isSubmitting)
+                  {
+                    <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                    <span>Submitting...</span>
+                  }
+                  else
+                  {
+                    <span>Submit Connection Card</span>
+                  }
+                </button>
+              </div>
+            </EditForm>
+          </div>
+        }
+      </div>
+      <div class="col-1 d-none d-md-block"></div>
+    </div>
+  </div>
+</main>
+
+@code {
+  private ConnectionCardForm form = new();
+  private bool submitted;
+  private bool isSubmitting;
+  private string? errorMessage;
+
+  private static readonly string[] visitOptions =
+  [
+    "1st Time Guest",
+    "2nd Time Guest",
+    "3rd Time Guest (or more!)",
+    "Regular Attender",
+    "Out-of-Town Guest"
+  ];
+
+  private static readonly string[] communicationOptions =
+  [
+    "US Mail",
+    "Email",
+    "Phone",
+    "Text"
+  ];
+
+  private static readonly string[] contactReasonOptions =
+  [
+    "How to become a christian",
+    "My decision to follow Christ",
+    "Baptism",
+    "Membership at Cedar Grove",
+    "Small group bible studies",
+    "Men's Ministry",
+    "Women's Ministry",
+    "Childrens Ministry",
+    "Youth Ministry",
+    "Other"
+  ];
+
+  private async Task HandleSubmit()
+  {
+    isSubmitting = true;
+    errorMessage = null;
+
+    try
+    {
+      var success = await CardService.SubmitAsync(form);
+      if (success)
+      {
+        submitted = true;
+      }
+      else
+      {
+        errorMessage = "There was a problem submitting your card. Please try again.";
+      }
+    }
+    catch
+    {
+      errorMessage = "There was a problem submitting your card. Please try again.";
+    }
+    finally
+    {
+      isSubmitting = false;
+    }
+  }
+}
