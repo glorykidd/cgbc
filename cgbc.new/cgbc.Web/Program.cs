@@ -9,8 +9,10 @@ builder.Services.AddRazorComponents()
 
 builder.Services.AddBlazorBootstrap();
 builder.Services.AddSingleton<ContentService>();
+var dbPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "cgbc.db");
+Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite($"Data Source={dbPath}"));
 builder.Services.AddScoped<ConnectionCardService>();
 builder.Services.AddResponseCompression(options =>
 {
