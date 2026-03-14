@@ -1,0 +1,113 @@
+@page "/admin"
+@attribute [Authorize]
+@layout AdminLayout
+@rendermode InteractiveServer
+
+<PageTitle>Dashboard - CGBC Admin</PageTitle>
+
+<h2 class="mb-4">Dashboard</h2>
+
+@if (stats != null)
+{
+    <div class="row g-3 mb-4">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card text-center admin-stat-card">
+                <div class="card-body">
+                    <div class="admin-stat-number">@stats.TotalSubmissions</div>
+                    <div class="text-muted">Total Submissions</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card text-center admin-stat-card">
+                <div class="card-body">
+                    <div class="admin-stat-number text-danger">@stats.UnreadCount</div>
+                    <div class="text-muted">Unread</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card text-center admin-stat-card">
+                <div class="card-body">
+                    <div class="admin-stat-number">@stats.ThisWeekCount</div>
+                    <div class="text-muted">This Week</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card text-center admin-stat-card">
+                <div class="card-body">
+                    <div class="admin-stat-number">@stats.ThisMonthCount</div>
+                    <div class="text-muted">This Month</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Recent Submissions</h5>
+            <a href="/admin/submissions" class="btn btn-sm btn-outline-primary">View All</a>
+        </div>
+        <div class="card-body p-0">
+            @if (stats.RecentSubmissions.Count == 0)
+            {
+                <p class="text-muted p-3 mb-0">No submissions yet.</p>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th></th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Reason</th>
+                                <th>Date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var card in stats.RecentSubmissions)
+                            {
+                                <tr class="@(card.IsRead ? "admin-row-read" : "admin-row-unread")">
+                                    <td><span class="admin-status-dot @(card.IsRead ? "read" : "unread")"></span></td>
+                                    <td><a href="/admin/submissions/@card.Id">@card.Name</a></td>
+                                    <td>@card.Email</td>
+                                    <td>@card.ContactReason</td>
+                                    <td>@card.SubmittedAt.ToLocalTime().ToString("MM/dd/yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    [Inject] private ConnectionCardService CardService { get; set; } = default!;
+
+    private AdminStats? stats;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var now = DateTime.UtcNow;
+        var weekStart = now.AddDays(-(int)now.DayOfWeek);
+        var monthStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        stats = new AdminStats
+        {
+            TotalSubmissions = await CardService.GetTotalCountAsync(),
+            UnreadCount = await CardService.GetUnreadCountAsync(),
+            ThisWeekCount = await CardService.GetCountSinceAsync(weekStart),
+            ThisMonthCount = await CardService.GetCountSinceAsync(monthStart),
+            RecentSubmissions = (await CardService.SearchAsync(null, null, 1, 5)).Items
+        };
+    }
+}

@@ -1,0 +1,144 @@
+@page "/admin/submissions/{Id:int}"
+@attribute [Authorize]
+@layout AdminLayout
+@rendermode InteractiveServer
+
+<PageTitle>Submission Detail - CGBC Admin</PageTitle>
+
+@if (card == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Submission from @card.Name</h2>
+        <a href="/admin/submissions" class="btn btn-outline-secondary btn-sm">Back to List</a>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <strong>Name:</strong>
+                    <p>@card.Name</p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Email:</strong>
+                    <p><a href="mailto:@card.Email">@card.Email</a></p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Phone:</strong>
+                    <p>@(card.Phone ?? "N/A")</p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Address:</strong>
+                    <p>@(card.Address ?? "N/A")</p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Visit Status:</strong>
+                    <p>@card.VisitStatus</p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Wants Contact:</strong>
+                    <p>@(card.WantsContact ? "Yes" : "No")</p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Preferred Communication:</strong>
+                    <p>@(string.IsNullOrEmpty(card.PreferredCommunication) ? "N/A" : card.PreferredCommunication)</p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Contact Reason:</strong>
+                    <p>@card.ContactReason</p>
+                </div>
+                @if (!string.IsNullOrEmpty(card.ContactReasonOther))
+                {
+                    <div class="col-12">
+                        <strong>Contact Reason (Other):</strong>
+                        <p>@card.ContactReasonOther</p>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(card.PrayerRequests))
+                {
+                    <div class="col-12">
+                        <strong>Prayer Requests:</strong>
+                        <p style="white-space: pre-wrap;">@card.PrayerRequests</p>
+                    </div>
+                }
+                <div class="col-md-6">
+                    <strong>Submitted:</strong>
+                    <p>@card.SubmittedAt.ToLocalTime().ToString("MMMM dd, yyyy 'at' h:mm tt")</p>
+                </div>
+                <div class="col-md-6">
+                    <strong>Status:</strong>
+                    <p>
+                        <span class="badge @(card.IsRead ? "bg-secondary" : "bg-primary")">
+                            @(card.IsRead ? "Read" : "Unread")
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="d-flex gap-2">
+        <button class="btn btn-outline-primary" @onclick="ToggleRead">
+            @(card.IsRead ? "Mark as Unread" : "Mark as Read")
+        </button>
+        <button class="btn btn-outline-danger" @onclick="() => showDeleteConfirm = true">
+            Delete
+        </button>
+    </div>
+}
+
+@if (showDeleteConfirm)
+{
+    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete this submission? This cannot be undone.</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="() => showDeleteConfirm = false">Cancel</button>
+                    <button class="btn btn-danger" @onclick="ExecuteDelete">Delete</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public int Id { get; set; }
+    [Inject] private ConnectionCardService CardService { get; set; } = default!;
+    [Inject] private NavigationManager Nav { get; set; } = default!;
+
+    private ConnectionCard? card;
+    private bool showDeleteConfirm;
+
+    protected override async Task OnInitializedAsync()
+    {
+        card = await CardService.GetByIdAsync(Id);
+        if (card != null && !card.IsRead)
+        {
+            await CardService.MarkAsReadAsync(Id);
+            card.IsRead = true;
+        }
+    }
+
+    private async Task ToggleRead()
+    {
+        if (card == null) return;
+        await CardService.ToggleReadAsync(Id);
+        card.IsRead = !card.IsRead;
+    }
+
+    private async Task ExecuteDelete()
+    {
+        await CardService.DeleteAsync(Id);
+        Nav.NavigateTo("/admin/submissions");
+    }
+}
