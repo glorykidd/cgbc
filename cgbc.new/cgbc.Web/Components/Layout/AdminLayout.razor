@@ -1,0 +1,28 @@
+@inherits LayoutComponentBase
+
+<nav class="navbar navbar-expand-sm navbar-dark admin-navbar">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="/admin">CGBC Admin</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="adminNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin">Dashboard</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/admin/submissions">Submissions</a>
+                </li>
+            </ul>
+            <form method="post" action="/api/auth/logout">
+                <AntiforgeryToken />
+                <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
+            </form>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4 mb-4">
+    @Body
+</div>

@@ -18,7 +18,8 @@ The Cedar Grove Baptist Church (CGBC) website uses Blazor Static SSR to deliver 
 
 ### Backend
 - **ASP.NET Core** (.NET 10.0) - SSR host with Kestrel
-- **Entity Framework Core** (SQLite) - Database for connection card submissions
+- **ASP.NET Identity** - Cookie-based authentication for admin area
+- **Entity Framework Core** (SQLite) - Database for connection cards and Identity
   - Database path resolved from `ContentRootPath` for IIS compatibility
   - Auto-creates `Data/` directory and database on startup via EF Core migrations
 - **Markdig** - Markdown processing with YAML frontmatter
@@ -47,8 +48,9 @@ cgbc/
 │   │   │   ├── _Imports.razor            # Global usings
 │   │   │   ├── Layout/
 │   │   │   │   ├── MainLayout.razor      # Flexbox layout with sticky footer
+│   │   │   │   ├── AdminLayout.razor     # Admin area layout (separate navbar)
 │   │   │   │   ├── NavMenu.razor         # Navigation (Bootstrap native toggle)
-│   │   │   │   └── Footer.razor          # Shared footer
+│   │   │   │   └── Footer.razor          # Shared footer (with admin link)
 │   │   │   ├── Pages/                    # 10 Razor page components (Static SSR)
 │   │   │   │   ├── Home.razor
 │   │   │   │   ├── About.razor
@@ -59,7 +61,12 @@ cgbc/
 │   │   │   │   ├── Calendar.razor
 │   │   │   │   ├── Churchindialogue.razor
 │   │   │   │   ├── Menonmission.razor
-│   │   │   │   └── Womenonmission.razor
+│   │   │   │   ├── Womenonmission.razor
+│   │   │   │   └── Admin/               # Password-protected admin area
+│   │   │   │       ├── Login.razor       # Login page (HTML form POST)
+│   │   │   │       ├── Dashboard.razor   # Stats overview + recent submissions
+│   │   │   │       ├── Submissions.razor # Searchable list with pagination
+│   │   │   │       └── SubmissionDetail.razor # Full submission view
 │   │   │   └── Shared/                   # Interactive components (SignalR)
 │   │   │       ├── SeoHead.razor         # Meta tags, OG, JSON-LD
 │   │   │       ├── HomeCarousel.razor    # @rendermode InteractiveServer
@@ -72,6 +79,8 @@ cgbc/
 │   │   │   ├── ConnectionCardService.cs  # Connection card CRUD operations
 │   │   │   └── SeoService.cs             # Schema.org JSON-LD generation
 │   │   ├── Models/
+│   │   │   ├── AdminUser.cs              # ASP.NET Identity user model
+│   │   │   ├── AdminStats.cs             # Dashboard statistics DTO
 │   │   │   ├── ConnectionCard.cs         # Connection card entity
 │   │   │   ├── ConnectionCardForm.cs     # Form binding model with validation
 │   │   │   ├── StaffMember.cs
@@ -80,14 +89,16 @@ cgbc/
 │   │   │   ├── ImageSlide.cs
 │   │   │   └── SeoMetadata.cs
 │   │   ├── Data/
-│   │   │   └── AppDbContext.cs           # EF Core DbContext (SQLite)
+│   │   │   └── AppDbContext.cs           # EF Core IdentityDbContext (SQLite)
 │   │   ├── Content/                      # Markdown + JSON content files
 │   │   │   ├── staff/                    # One .md per staff member
 │   │   │   ├── ministries/               # Ministry slider + image data
 │   │   │   ├── slider/                   # Homepage carousel slides
 │   │   │   └── pages/                    # Per-page SEO metadata
 │   │   ├── Endpoints/
-│   │   │   └── SitemapEndpoint.cs        # Dynamic sitemap.xml
+│   │   │   ├── SitemapEndpoint.cs        # Dynamic sitemap.xml
+│   │   │   ├── AuthEndpoints.cs          # Login/logout API (cookie auth)
+│   │   │   └── ExportEndpoint.cs         # CSV export of submissions
 │   │   ├── wwwroot/
 │   │   │   ├── img/                      # Static images
 │   │   │   ├── css/app.css               # Custom styles
@@ -137,6 +148,34 @@ Content is managed through markdown files with YAML frontmatter, processed by `C
 - **Dynamic sitemap.xml** at `/sitemap.xml`
 - **robots.txt** for search engine crawling
 - **Canonical URLs** on all pages
+
+### Admin Interface
+
+A password-protected admin area for managing connection card submissions:
+
+- **Dashboard** (`/admin`) — Stats cards (total, unread, this week, this month) and recent submissions table
+- **Submissions** (`/admin/submissions`) — Full list with search, read/unread filter, pagination (10/25/50 per page), and inline actions (toggle read, delete with confirmation)
+- **Submission Detail** (`/admin/submissions/{id}`) — Complete submission view, auto-marks as read on load
+- **CSV Export** (`/admin/export/csv`) — Download all submissions as a CSV file
+- **Login** (`/admin/login`) — Username/password authentication
+
+#### Authentication
+
+Uses ASP.NET Identity with cookie-based authentication. Login is handled via an HTML form POST to a minimal API endpoint (not Blazor EditForm) so the authentication cookie is set on the HTTP response. All admin pages require authorization via `[Authorize]` attribute.
+
+The admin account is seeded on startup from `appsettings.json`:
+
+```json
+{
+  "AdminSeed": {
+    "Username": "admin",
+    "Email": "admin@cedargrovebaptist.church",
+    "Password": "Admin@CGBC2026!"
+  }
+}
+```
+
+Override these values via environment variables in production (e.g., `AdminSeed__Password`).
 
 ## Development
 
