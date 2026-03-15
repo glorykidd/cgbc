@@ -103,23 +103,26 @@
 
               <div class="mb-3">
                 <label class="form-label">Contact me about <span class="text-danger">*</span></label>
-                <InputRadioGroup @bind-Value="form.ContactReason">
-                  <div class="row">
-                    @foreach (var option in contactReasonOptions)
-                    {
-                      <div class="col-md-4">
-                        <div class="form-check">
-                          <InputRadio Value="@option" class="form-check-input" />
-                          <label class="form-check-label">@option</label>
-                        </div>
+                <div class="row">
+                  @foreach (var option in contactReasonOptions)
+                  {
+                    <div class="col-md-4">
+                      <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="@($"reason-{option.GetHashCode()}")"
+                               checked="@form.ContactReasons.Contains(option)"
+                               @onchange="e => ToggleContactReason(option, (bool)e.Value!)" />
+                        <label class="form-check-label" for="@($"reason-{option.GetHashCode()}")">@option</label>
                       </div>
-                    }
-                  </div>
-                </InputRadioGroup>
-                <ValidationMessage For="() => form.ContactReason" />
+                    </div>
+                  }
+                </div>
+                @if (contactReasonError != null)
+                {
+                  <div class="validation-message">@contactReasonError</div>
+                }
               </div>
 
-              @if (form.ContactReason == "Other")
+              @if (form.ContactReasons.Contains("Other"))
               {
                 <div class="mb-3">
                   <label class="form-label">Please specify</label>
@@ -165,6 +168,7 @@
   private bool submitted;
   private bool isSubmitting;
   private string? errorMessage;
+  private string? contactReasonError;
 
   private static readonly string[] visitOptions =
   [
@@ -197,10 +201,27 @@
     "Other"
   ];
 
+  private void ToggleContactReason(string option, bool isChecked)
+  {
+    if (isChecked)
+      form.ContactReasons.Add(option);
+    else
+      form.ContactReasons.Remove(option);
+    contactReasonError = null;
+  }
+
   private async Task HandleSubmit()
   {
     isSubmitting = true;
     errorMessage = null;
+    contactReasonError = null;
+
+    if (form.ContactReasons.Count == 0)
+    {
+      contactReasonError = "Please select at least one reason for contact.";
+      isSubmitting = false;
+      return;
+    }
 
     try
     {
