@@ -34,7 +34,7 @@ public class ConnectionCardServiceTests : IDisposable
         VisitStatus = "1st Time Guest",
         WantsContact = true,
         PreferredCommunication = "Email",
-        ContactReason = "Baptism"
+        ContactReasons = ["Baptism"]
     };
 
     [Fact]
@@ -85,7 +85,7 @@ public class ConnectionCardServiceTests : IDisposable
         Assert.Equal(form.PreferredCommunication, card.PreferredCommunication);
         Assert.Equal(form.Address, card.Address);
         Assert.Equal(form.Phone, card.Phone);
-        Assert.Equal(form.ContactReason, card.ContactReason);
+        Assert.Equal(string.Join(", ", form.ContactReasons), card.ContactReason);
         Assert.Equal(form.ContactReasonOther, card.ContactReasonOther);
         Assert.Equal(form.PrayerRequests, card.PrayerRequests);
     }

@@ -24,7 +24,7 @@ public class ConnectionCardService
             PreferredCommunication = form.PreferredCommunication,
             Address = form.Address,
             Phone = form.Phone,
-            ContactReason = form.ContactReason,
+            ContactReason = string.Join(", ", form.ContactReasons),
             ContactReasonOther = form.ContactReasonOther,
             PrayerRequests = form.PrayerRequests,
             SubmittedAt = DateTime.UtcNow,

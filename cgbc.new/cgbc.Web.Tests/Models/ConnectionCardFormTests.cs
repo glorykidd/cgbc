@@ -20,7 +20,7 @@ public class ConnectionCardFormTests
         VisitStatus = "1st Time Guest",
         WantsContact = true,
         PreferredCommunication = "Email",
-        ContactReason = "Baptism"
+        ContactReasons = ["Baptism"]
     };
 
     [Fact]
@@ -85,12 +85,13 @@ public class ConnectionCardFormTests
     }
 
     [Fact]
-    public void MissingContactReason_HasValidationError()
+    public void EmptyContactReasons_HasNoValidationError()
     {
+        // ContactReasons validation is handled in the UI layer, not via data annotations
         var form = CreateValidForm();
-        form.ContactReason = "";
+        form.ContactReasons = [];
         var results = ValidateModel(form);
-        Assert.Contains(results, r => r.MemberNames.Contains("ContactReason"));
+        Assert.DoesNotContain(results, r => r.MemberNames.Contains("ContactReasons"));
     }
 
     [Fact]

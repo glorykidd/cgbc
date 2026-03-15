@@ -24,8 +24,7 @@ public class ConnectionCardForm
 
     public string? Phone { get; set; }
 
-    [Required(ErrorMessage = "Please select a reason for contact.")]
-    public string ContactReason { get; set; } = "";
+    public List<string> ContactReasons { get; set; } = [];
 
     public string? ContactReasonOther { get; set; }
 
