@@ -206,19 +206,31 @@ public class AdminUserManagementTests : IDisposable
     // --- Admin Password Reset ---
 
     [Fact]
-    public async Task AdminResetPassword_RemoveAndAdd_Succeeds()
+    public async Task AdminResetPassword_ViaToken_Succeeds()
     {
         var user = await CreateTestUserAsync(password: "Old@Pass1");
         var userManager = GetUserManager();
 
-        var removeResult = await userManager.RemovePasswordAsync(user);
-        Assert.True(removeResult.Succeeded);
-
-        var addResult = await userManager.AddPasswordAsync(user, "Admin@Set1");
-        Assert.True(addResult.Succeeded);
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await userManager.ResetPasswordAsync(user, token, "Admin@Set1");
+        Assert.True(result.Succeeded);
 
         Assert.True(await userManager.CheckPasswordAsync(user, "Admin@Set1"));
         Assert.False(await userManager.CheckPasswordAsync(user, "Old@Pass1"));
+    }
+
+    [Fact]
+    public async Task AdminResetPassword_ViaToken_InvalidPassword_KeepsOldPassword()
+    {
+        var user = await CreateTestUserAsync(password: "Old@Pass1");
+        var userManager = GetUserManager();
+
+        var token = await userManager.GeneratePasswordResetTokenAsync(user);
+        var result = await userManager.ResetPasswordAsync(user, token, "weak");
+        Assert.False(result.Succeeded);
+
+        // Old password still works — user is not left without a password
+        Assert.True(await userManager.CheckPasswordAsync(user, "Old@Pass1"));
     }
 
     // --- User Deletion ---
