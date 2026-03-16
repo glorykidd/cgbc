@@ -101,3 +101,12 @@ code {
 .form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
     text-align: start;
 }
+
+.admin-navbar .nav-link.active,
+.admin-navbar .nav-link:hover {
+    color: #fff;
+}
+
+.admin-navbar .text-light:hover {
+    color: #ddd !important;
+}

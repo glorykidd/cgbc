@@ -19,11 +19,11 @@ builder.Services.AddScoped<ConnectionCardService>();
 
 builder.Services.AddIdentity<AdminUser, IdentityRole>(options =>
 {
-    options.Password.RequireDigit = false;
-    options.Password.RequireLowercase = false;
-    options.Password.RequireUppercase = false;
-    options.Password.RequireNonAlphanumeric = false;
-    options.Password.RequiredLength = 6;
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = true;
+    options.Password.RequiredLength = 8;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders();
@@ -66,9 +66,15 @@ using (var scope = app.Services.CreateScope())
         {
             UserName = username,
             Email = email,
-            EmailConfirmed = true
+            EmailConfirmed = true,
+            DisplayName = "Administrator"
         };
         await userManager.CreateAsync(adminUser, password);
+    }
+    else if (string.IsNullOrEmpty(existingUser.DisplayName))
+    {
+        existingUser.DisplayName = "Administrator";
+        await userManager.UpdateAsync(existingUser);
     }
 }
 
