@@ -1,4 +1,5 @@
 @page "/admin/users"
+@using Microsoft.EntityFrameworkCore
 @attribute [Authorize]
 @layout AdminLayout
 @rendermode InteractiveServer
@@ -100,7 +101,7 @@ else
 
     private async Task LoadUsers()
     {
-        users = await Task.Run(() => UserManager.Users.OrderBy(u => u.UserName).ToList());
+        users = await UserManager.Users.OrderBy(u => u.UserName).ToListAsync();
     }
 
     private bool IsProtected(AdminUser u)
