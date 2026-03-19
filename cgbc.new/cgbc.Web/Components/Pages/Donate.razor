@@ -1,0 +1,203 @@
+@page "/donate"
+@rendermode InteractiveServer
+@using Stripe.Checkout
+@inject IConfiguration Config
+@inject IJSRuntime JS
+@inject NavigationManager Nav
+
+<SeoHead Page="donate" PagePath="/donate" />
+
+<section class="hero-section">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <h1>Cedar Grove Baptist Church</h1>
+        <p>Give Online</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<main class="container">
+  <div class="container">
+    <div class="row">
+      <div class="col-1 d-none d-md-block"></div>
+      <div class="col-md-10 col-sm-12">
+        @if (showSuccess)
+        {
+          <div class="card text-center p-5" style="background: rgba(255,255,255,0.9); border-radius: 20px;">
+            <h2>Thank You for Your Generosity!</h2>
+            <p class="lead">Your donation to Cedar Grove Baptist Church has been received. We are grateful for your support.</p>
+            <p class="text-muted fst-italic">"Each of you should give what you have decided in your heart to give, not reluctantly or under compulsion, for God loves a cheerful giver."<br /> - 2 Corinthians 9:7</p>
+            <a href="/" class="btn btn-primary mt-3">Return Home</a>
+          </div>
+        }
+        else if (showCheckout)
+        {
+          <div class="card p-4" style="background: rgba(255,255,255,0.9); border-radius: 20px;">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h3 class="mb-0">Complete Your Donation</h3>
+              <button class="btn btn-outline-secondary btn-sm" @onclick="BackToAmount">Change Amount</button>
+            </div>
+            <div id="stripe-checkout"></div>
+          </div>
+        }
+        else
+        {
+          <div class="card p-4" style="background: rgba(255,255,255,0.9); border-radius: 20px;">
+            <h3 class="mb-2">Your Support Matters</h3>
+            <p class="mb-4">When you give to Cedar Grove Baptist Church, you're investing in something that matters — the ministries, the people, and the community we're called to serve. Your generosity helps us worship together, grow in faith, and reach our neighbors with hope and compassion. Thank you for being part of what God is doing here.</p>
+            <p class="text-muted fst-italic mb-4">"Each of you should give what you have decided in your heart to give, not reluctantly or under compulsion, for God loves a cheerful giver."<br /> - 2 Corinthians 9:7</p>
+
+            <div class="row justify-content-center mb-3">
+              <div class="col-md-6">
+                <label class="form-label fw-bold">Donation Amount</label>
+                <div class="input-group input-group-lg">
+                  <span class="input-group-text">$</span>
+                  <input type="number" class="form-control" @bind="amount" min="1" step="0.01" placeholder="0.00" />
+                </div>
+              </div>
+            </div>
+
+            <div class="row justify-content-center mb-3">
+              <div class="col-md-6">
+                <div class="d-flex gap-2 flex-wrap">
+                  <button class="btn btn-outline-primary" @onclick="() => amount = 25">$25</button>
+                  <button class="btn btn-outline-primary" @onclick="() => amount = 50">$50</button>
+                  <button class="btn btn-outline-primary" @onclick="() => amount = 100">$100</button>
+                  <button class="btn btn-outline-primary" @onclick="() => amount = 250">$250</button>
+                </div>
+              </div>
+            </div>
+
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+              <div class="alert alert-danger text-center">@errorMessage</div>
+            }
+
+            <div class="text-center">
+              <button class="btn btn-primary btn-lg" @onclick="StartCheckout" disabled="@isLoading">
+                @if (isLoading)
+                {
+                  <span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>
+                  <span>Loading...</span>
+                }
+                else
+                {
+                  <span>Donate Now</span>
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+      <div class="col-1 d-none d-md-block"></div>
+    </div>
+  </div>
+</main>
+
+@code {
+  private decimal amount;
+  private bool showCheckout;
+  private bool showSuccess;
+  private bool isLoading;
+  private string? errorMessage;
+
+  [SupplyParameterFromQuery(Name = "session_id")]
+  public string? SessionId { get; set; }
+
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender && !string.IsNullOrEmpty(SessionId))
+    {
+      await CheckSessionStatus();
+    }
+  }
+
+  private async Task CheckSessionStatus()
+  {
+    try
+    {
+      var service = new SessionService();
+      var session = await service.GetAsync(SessionId);
+      if (session.PaymentStatus == "paid")
+      {
+        showSuccess = true;
+        StateHasChanged();
+      }
+    }
+    catch
+    {
+      // If we can't verify, show the form
+    }
+  }
+
+  private async Task StartCheckout()
+  {
+    errorMessage = null;
+
+    if (amount < 1)
+    {
+      errorMessage = "Please enter a donation amount of at least $1.00.";
+      return;
+    }
+
+    if (amount > 25000)
+    {
+      errorMessage = "For donations over $25,000, please contact the church office.";
+      return;
+    }
+
+    isLoading = true;
+
+    try
+    {
+      var options = new SessionCreateOptions
+      {
+        Mode = "payment",
+        UiMode = "embedded",
+        LineItems =
+        [
+          new SessionLineItemOptions
+          {
+            PriceData = new SessionLineItemPriceDataOptions
+            {
+              Currency = "usd",
+              UnitAmount = (long)(amount * 100),
+              ProductData = new SessionLineItemPriceDataProductDataOptions
+              {
+                Name = "Donation to Cedar Grove Baptist Church"
+              }
+            },
+            Quantity = 1
+          }
+        ],
+        ReturnUrl = $"{Nav.BaseUri}donate?session_id={{CHECKOUT_SESSION_ID}}"
+      };
+
+      var service = new SessionService();
+      var session = await service.CreateAsync(options);
+
+      showCheckout = true;
+      StateHasChanged();
+
+      var publishableKey = Config["Stripe:PublishableKey"];
+      await JS.InvokeVoidAsync("stripeCheckout.initialize", publishableKey, session.ClientSecret);
+    }
+    catch
+    {
+      errorMessage = "Unable to start checkout. Please try again.";
+    }
+    finally
+    {
+      isLoading = false;
+    }
+  }
+
+  private async Task BackToAmount()
+  {
+    await JS.InvokeVoidAsync("stripeCheckout.destroy");
+    showCheckout = false;
+  }
+
+}
