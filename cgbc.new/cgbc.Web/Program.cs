@@ -46,6 +46,8 @@ builder.Services.AddResponseCompression(options =>
     options.EnableForHttps = true;
 });
 
+Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -112,6 +114,5 @@ app.MapRazorComponents<cgbc.Web.Components.App>()
 app.MapGet("/sitemap.xml", cgbc.Web.Endpoints.SitemapEndpoint.Handle);
 cgbc.Web.Endpoints.AuthEndpoints.Map(app);
 cgbc.Web.Endpoints.ExportEndpoint.Map(app);
-cgbc.Web.Endpoints.StripeEndpoints.Map(app);
 
 app.Run();

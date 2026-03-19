@@ -118,7 +118,6 @@
   {
     try
     {
-      Stripe.StripeConfiguration.ApiKey = Config["Stripe:SecretKey"];
       var service = new SessionService();
       var session = await service.GetAsync(SessionId);
       if (session.PaymentStatus == "paid")
@@ -143,12 +142,16 @@
       return;
     }
 
+    if (amount > 25000)
+    {
+      errorMessage = "For donations over $25,000, please contact the church office.";
+      return;
+    }
+
     isLoading = true;
 
     try
     {
-      Stripe.StripeConfiguration.ApiKey = Config["Stripe:SecretKey"];
-
       var options = new SessionCreateOptions
       {
         Mode = "payment",
@@ -181,9 +184,9 @@
       var publishableKey = Config["Stripe:PublishableKey"];
       await JS.InvokeVoidAsync("stripeCheckout.initialize", publishableKey, session.ClientSecret);
     }
-    catch (Exception ex)
+    catch
     {
-      errorMessage = $"Unable to start checkout: {ex.Message}";
+      errorMessage = "Unable to start checkout. Please try again.";
     }
     finally
     {
