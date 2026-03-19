@@ -16,6 +16,7 @@ public static class SitemapEndpoint
         ("/menonmission", "0.6"),
         ("/womenonmission", "0.6"),
         ("/connect", "0.8"),
+        ("/donate", "0.8"),
     ];
 
     public static IResult Handle()

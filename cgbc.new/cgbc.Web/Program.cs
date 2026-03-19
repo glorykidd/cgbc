@@ -112,5 +112,6 @@ app.MapRazorComponents<cgbc.Web.Components.App>()
 app.MapGet("/sitemap.xml", cgbc.Web.Endpoints.SitemapEndpoint.Handle);
 cgbc.Web.Endpoints.AuthEndpoints.Map(app);
 cgbc.Web.Endpoints.ExportEndpoint.Map(app);
+cgbc.Web.Endpoints.StripeEndpoints.Map(app);
 
 app.Run();
