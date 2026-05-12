@@ -420,8 +420,9 @@ FodyWeavers.xsd
 *.msm
 *.msp
 
-# Development settings (contains secrets)
+# Environment-specific settings (contain secrets — place manually on server)
 appsettings.Development.json
+appsettings.Production.json
 
 # SQLite database
 cgbc.new/cgbc.Web/Data/*.db
