@@ -15,6 +15,7 @@ var dbPath = Path.Combine(builder.Environment.ContentRootPath, "Data", "cgbc.db"
 Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
+builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<ConnectionCardService>();
 
 builder.Services.AddIdentity<AdminUser, IdentityRole>(options =>

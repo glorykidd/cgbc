@@ -23,7 +23,7 @@ public static class ExportEndpoint
         }).RequireAuthorization();
     }
 
-    private static string Escape(string? value)
+    internal static string Escape(string? value)
     {
         if (string.IsNullOrEmpty(value)) return "";
         if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
