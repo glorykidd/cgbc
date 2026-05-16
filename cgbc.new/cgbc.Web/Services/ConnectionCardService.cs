@@ -7,10 +7,12 @@ namespace cgbc.Web.Services;
 public class ConnectionCardService
 {
     private readonly AppDbContext _db;
+    private readonly EmailService _email;
 
-    public ConnectionCardService(AppDbContext db)
+    public ConnectionCardService(AppDbContext db, EmailService email)
     {
         _db = db;
+        _email = email;
     }
 
     public async Task<bool> SubmitAsync(ConnectionCardForm form)
@@ -32,7 +34,17 @@ public class ConnectionCardService
         };
 
         _db.ConnectionCards.Add(card);
-        return await _db.SaveChangesAsync() > 0;
+        var saved = await _db.SaveChangesAsync() > 0;
+
+        if (saved)
+        {
+            await _email.SendAdminNotificationAsync(card);
+
+            if (card.WantsContact && card.PreferredCommunication == "Email")
+                await _email.SendVisitorConfirmationAsync(card);
+        }
+
+        return saved;
     }
 
     public async Task<List<ConnectionCard>> GetSubmissionsAsync(int page, int pageSize)
