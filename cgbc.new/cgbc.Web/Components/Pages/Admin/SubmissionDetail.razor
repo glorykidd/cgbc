@@ -2,6 +2,7 @@
 @attribute [Authorize]
 @layout AdminLayout
 @rendermode InteractiveServer
+@using Microsoft.AspNetCore.Components.Authorization
 
 <PageTitle>Submission Detail - CGBC Admin</PageTitle>
 
@@ -77,17 +78,97 @@ else
                         </span>
                     </p>
                 </div>
+                <div class="col-md-6">
+                    <strong>Acknowledged:</strong>
+                    <div class="form-check mt-1">
+                        <input class="form-check-input" type="checkbox" id="acknowledgedCheck"
+                               checked="@card.IsAcknowledged"
+                               @onchange="ToggleAcknowledged" />
+                        <label class="form-check-label" for="acknowledgedCheck">
+                            @(card.IsAcknowledged ? "Card has been reviewed" : "Mark as reviewed")
+                        </label>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
 
-    <div class="d-flex gap-2">
+    <div class="d-flex gap-2 mb-4">
         <button class="btn btn-outline-primary" @onclick="ToggleRead">
             @(card.IsRead ? "Mark as Unread" : "Mark as Read")
         </button>
-        <button class="btn btn-outline-danger" @onclick="() => showDeleteConfirm = true">
-            Delete
-        </button>
+        <button class="btn btn-outline-secondary" @onclick="() => showForward = true">Forward</button>
+        <button class="btn btn-outline-danger" @onclick="() => showDeleteConfirm = true">Delete</button>
+    </div>
+
+    <h5 class="mb-3">Internal Notes</h5>
+
+    @if (card.Notes.Count == 0)
+    {
+        <p class="text-muted small mb-3">No notes yet.</p>
+    }
+    else
+    {
+        <div class="d-flex flex-column gap-2 mb-3">
+            @foreach (var note in card.Notes)
+            {
+                <div class="card border-start border-3 border-success">
+                    <div class="card-body py-2 px-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-semibold small">@note.CreatedBy</span>
+                            <span class="text-muted small">@note.CreatedAt.ToLocalTime().ToString("MMM dd, yyyy 'at' h:mm tt")</span>
+                        </div>
+                        <p class="mb-0 small" style="white-space: pre-wrap;">@note.Message</p>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    <div class="card">
+        <div class="card-body">
+            <label class="form-label fw-semibold" for="noteText">Add Note</label>
+            <textarea id="noteText" class="form-control mb-2" rows="4"
+                      @bind="noteText" placeholder="Internal notes visible only to admins..."></textarea>
+            @if (noteError != null)
+            {
+                <div class="text-danger small mb-2">@noteError</div>
+            }
+            @if (noteSuccess)
+            {
+                <div class="text-success small mb-2">Note saved.</div>
+            }
+            <button class="btn btn-primary" @onclick="AddNote" disabled="@noteSaving">
+                @(noteSaving ? "Saving…" : "Save Note")
+            </button>
+        </div>
+    </div>
+}
+
+@if (showForward)
+{
+    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Forward Connection Card</h5>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label" for="forwardTo">Forward to email address</label>
+                    <input id="forwardTo" type="email" class="form-control" @bind="forwardAddress" placeholder="recipient@example.com" />
+                    @if (forwardError != null)
+                    {
+                        <div class="text-danger small mt-1">@forwardError</div>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseForward">Cancel</button>
+                    <button class="btn btn-primary" @onclick="ExecuteForward" disabled="@forwardSending">
+                        @(forwardSending ? "Sending…" : "Send")
+                    </button>
+                </div>
+            </div>
+        </div>
     </div>
 }
 
@@ -114,14 +195,31 @@ else
 @code {
     [Parameter] public int Id { get; set; }
     [Inject] private ConnectionCardService CardService { get; set; } = default!;
+    [Inject] private EmailService EmailService { get; set; } = default!;
     [Inject] private NavigationManager Nav { get; set; } = default!;
+    [CascadingParameter] private AuthenticationState AuthState { get; set; } = default!;
 
     private ConnectionCard? card;
+    private string currentUserName = "Admin";
     private bool showDeleteConfirm;
+
+    private bool showForward;
+    private string forwardAddress = "";
+    private string? forwardError;
+    private bool forwardSending;
+
+    private string noteText = "";
+    private string? noteError;
+    private bool noteSuccess;
+    private bool noteSaving;
 
     protected override async Task OnInitializedAsync()
     {
-        card = await CardService.GetByIdAsync(Id);
+        currentUserName = AuthState?.User.FindFirst("display_name")?.Value
+            ?? AuthState?.User.Identity?.Name
+            ?? "Admin";
+
+        card = await CardService.GetByIdWithNotesAsync(Id);
         if (card != null && !card.IsRead)
         {
             await CardService.MarkAsReadAsync(Id);
@@ -134,6 +232,69 @@ else
         if (card == null) return;
         await CardService.ToggleReadAsync(Id);
         card.IsRead = !card.IsRead;
+    }
+
+    private async Task ToggleAcknowledged(ChangeEventArgs e)
+    {
+        if (card == null) return;
+        var acknowledged = (bool)(e.Value ?? false);
+        await CardService.SetAcknowledgedAsync(Id, acknowledged);
+        card.IsAcknowledged = acknowledged;
+    }
+
+    private async Task AddNote()
+    {
+        noteError = null;
+        noteSuccess = false;
+
+        if (string.IsNullOrWhiteSpace(noteText))
+        {
+            noteError = "Please enter a note before saving.";
+            return;
+        }
+
+        noteSaving = true;
+        try
+        {
+            var note = await CardService.AddNoteAsync(Id, noteText.Trim(), currentUserName);
+            card!.Notes.Add(note);
+            noteText = "";
+            noteSuccess = true;
+        }
+        finally
+        {
+            noteSaving = false;
+        }
+    }
+
+    private async Task ExecuteForward()
+    {
+        forwardError = null;
+
+        if (string.IsNullOrWhiteSpace(forwardAddress) || !forwardAddress.Contains('@'))
+        {
+            forwardError = "Please enter a valid email address.";
+            return;
+        }
+
+        forwardSending = true;
+        try
+        {
+            await EmailService.ForwardConnectionCardAsync(card!, forwardAddress.Trim());
+            showForward = false;
+            forwardAddress = "";
+        }
+        finally
+        {
+            forwardSending = false;
+        }
+    }
+
+    private void CloseForward()
+    {
+        showForward = false;
+        forwardAddress = "";
+        forwardError = null;
     }
 
     private async Task ExecuteDelete()

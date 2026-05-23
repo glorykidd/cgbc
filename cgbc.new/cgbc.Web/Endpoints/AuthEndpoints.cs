@@ -29,7 +29,7 @@ public static class AuthEndpoints
         app.MapPost("/api/auth/logout", async (SignInManager<AdminUser> signInManager) =>
         {
             await signInManager.SignOutAsync();
-            return Results.Redirect("/admin/login");
+            return Results.Redirect("/");
         }).RequireAuthorization();
     }
 }
