@@ -15,4 +15,6 @@ public class ConnectionCard
     public string? PrayerRequests { get; set; }
     public DateTime SubmittedAt { get; set; }
     public bool IsRead { get; set; }
+    public bool IsAcknowledged { get; set; }
+    public List<ConnectionCardNote> Notes { get; set; } = [];
 }

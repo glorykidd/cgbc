@@ -76,6 +76,31 @@ public class ConnectionCardService
         return await _db.ConnectionCards.FindAsync(id);
     }
 
+    public async Task<ConnectionCard?> GetByIdWithNotesAsync(int id) =>
+        await _db.ConnectionCards
+            .Include(c => c.Notes.OrderBy(n => n.CreatedAt))
+            .FirstOrDefaultAsync(c => c.Id == id);
+
+    public async Task SetAcknowledgedAsync(int id, bool acknowledged)
+    {
+        var card = await _db.ConnectionCards.FindAsync(id);
+        if (card != null) { card.IsAcknowledged = acknowledged; await _db.SaveChangesAsync(); }
+    }
+
+    public async Task<ConnectionCardNote> AddNoteAsync(int cardId, string message, string createdBy)
+    {
+        var note = new ConnectionCardNote
+        {
+            ConnectionCardId = cardId,
+            Message = message,
+            CreatedBy = createdBy,
+            CreatedAt = DateTime.UtcNow
+        };
+        _db.ConnectionCardNotes.Add(note);
+        await _db.SaveChangesAsync();
+        return note;
+    }
+
     public async Task<int> GetTotalCountAsync()
     {
         return await _db.ConnectionCards.CountAsync();
