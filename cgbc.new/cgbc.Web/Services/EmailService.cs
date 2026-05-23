@@ -28,6 +28,13 @@ public class EmailService
         await SendAsync(adminEmail, "CGBC Admin", subject, body);
     }
 
+    public async Task ForwardConnectionCardAsync(ConnectionCard card, string toEmail)
+    {
+        var subject = $"[Forwarded] Connection Card: {card.Name}";
+        var body = BuildAdminNotificationHtml(card);
+        await SendAsync(toEmail, toEmail, subject, body);
+    }
+
     public async Task SendVisitorConfirmationAsync(ConnectionCard card)
     {
         if (string.IsNullOrWhiteSpace(card.Email))

@@ -65,6 +65,7 @@
                                 <th>Email</th>
                                 <th>Reason</th>
                                 <th>Date</th>
+                                <th>Ack.</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -76,6 +77,7 @@
                                     <td>@card.Email</td>
                                     <td>@card.ContactReason</td>
                                     <td>@card.SubmittedAt.ToLocalTime().ToString("MM/dd/yyyy")</td>
+                                    <td>@if (card.IsAcknowledged) { <i class="bi bi-check-circle-fill text-success" title="Acknowledged"></i> }</td>
                                 </tr>
                             }
                         </tbody>

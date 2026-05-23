@@ -53,6 +53,7 @@
                                 <th>Visit Status</th>
                                 <th>Reason</th>
                                 <th>Date</th>
+                                <th>Ack.</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -66,6 +67,7 @@
                                     <td>@card.VisitStatus</td>
                                     <td>@card.ContactReason</td>
                                     <td>@card.SubmittedAt.ToLocalTime().ToString("MM/dd/yyyy")</td>
+                                    <td>@if (card.IsAcknowledged) { <i class="bi bi-check-circle-fill text-success" title="Acknowledged"></i> }</td>
                                     <td>
                                         <button class="btn btn-sm btn-outline-secondary me-1" title="@(card.IsRead ? "Mark Unread" : "Mark Read")"
                                                 @onclick="() => ToggleRead(card.Id)">

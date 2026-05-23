@@ -1,4 +1,5 @@
 using cgbc.Web.Data;
+using cgbc.Web.Identity;
 using cgbc.Web.Models;
 using cgbc.Web.Services;
 using Microsoft.AspNetCore.Identity;
@@ -27,7 +28,8 @@ builder.Services.AddIdentity<AdminUser, IdentityRole>(options =>
     options.Password.RequiredLength = 8;
 })
 .AddEntityFrameworkStores<AppDbContext>()
-.AddDefaultTokenProviders();
+.AddDefaultTokenProviders()
+.AddClaimsPrincipalFactory<AdminUserClaimsPrincipalFactory>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -60,7 +62,7 @@ using (var scope = app.Services.CreateScope())
     var adminConfig = app.Configuration.GetSection("AdminSeed");
     var username = adminConfig["Username"] ?? "admin";
     var email = adminConfig["Email"] ?? "admin@cedargrovebaptist.church";
-    var password = adminConfig["Password"] ?? "Admin@CGBC2026!";
+    var password = !string.IsNullOrEmpty(adminConfig["Password"]) ? adminConfig["Password"] : "Admin@CGBC2026!";
 
     var existingUser = await userManager.FindByNameAsync(username);
     if (existingUser == null)
