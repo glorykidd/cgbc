@@ -305,4 +305,90 @@ public class ConnectionCardServiceTests : IDisposable
         Assert.Equal(2, all.Count);
         Assert.True(all[0].SubmittedAt >= all[1].SubmittedAt);
     }
+
+    [Fact]
+    public async Task AddNoteAsync_SavesNoteWithCorrectFields()
+    {
+        await _service.SubmitAsync(CreateValidForm());
+        var card = await _db.ConnectionCards.FirstAsync();
+
+        var before = DateTime.UtcNow;
+        var note = await _service.AddNoteAsync(card.Id, "Test note", "Admin");
+        var after = DateTime.UtcNow;
+
+        Assert.Equal(card.Id, note.ConnectionCardId);
+        Assert.Equal("Test note", note.Message);
+        Assert.Equal("Admin", note.CreatedBy);
+        Assert.InRange(note.CreatedAt, before, after);
+    }
+
+    [Fact]
+    public async Task AddNoteAsync_PersistsToDatabase()
+    {
+        await _service.SubmitAsync(CreateValidForm());
+        var card = await _db.ConnectionCards.FirstAsync();
+
+        await _service.AddNoteAsync(card.Id, "Persisted note", "Admin");
+
+        Assert.Equal(1, await _db.ConnectionCardNotes.CountAsync());
+    }
+
+    [Fact]
+    public async Task AddNoteAsync_DoesNotDuplicateNote()
+    {
+        await _service.SubmitAsync(CreateValidForm());
+        var card = await _db.ConnectionCards.FirstAsync();
+
+        await _service.AddNoteAsync(card.Id, "Single note", "Admin");
+
+        Assert.Equal(1, await _db.ConnectionCardNotes.CountAsync());
+    }
+
+    [Fact]
+    public async Task GetByIdWithNotesAsync_IncludesNotes()
+    {
+        await _service.SubmitAsync(CreateValidForm());
+        var card = await _db.ConnectionCards.FirstAsync();
+        await _service.AddNoteAsync(card.Id, "Note 1", "Admin");
+        await _service.AddNoteAsync(card.Id, "Note 2", "Admin");
+
+        var result = await _service.GetByIdWithNotesAsync(card.Id);
+
+        Assert.NotNull(result);
+        Assert.Equal(2, result.Notes.Count);
+    }
+
+    [Fact]
+    public async Task GetByIdWithNotesAsync_ReturnsNull_WhenNotFound()
+    {
+        var result = await _service.GetByIdWithNotesAsync(999);
+        Assert.Null(result);
+    }
+
+    [Fact]
+    public async Task GetByIdWithNotesAsync_OrdersNotesAscending()
+    {
+        await _service.SubmitAsync(CreateValidForm());
+        var card = await _db.ConnectionCards.FirstAsync();
+
+        // Insert in reverse chronological order to prove the query re-orders them
+        _db.ConnectionCardNotes.Add(new ConnectionCardNote
+        {
+            ConnectionCardId = card.Id, Message = "Second", CreatedBy = "Admin",
+            CreatedAt = DateTime.UtcNow
+        });
+        _db.ConnectionCardNotes.Add(new ConnectionCardNote
+        {
+            ConnectionCardId = card.Id, Message = "First", CreatedBy = "Admin",
+            CreatedAt = DateTime.UtcNow.AddMinutes(-5)
+        });
+        await _db.SaveChangesAsync();
+
+        // Use a fresh context read (detach tracked entity so the query actually runs)
+        _db.ChangeTracker.Clear();
+        var result = await _service.GetByIdWithNotesAsync(card.Id);
+
+        Assert.Equal("First", result!.Notes[0].Message);
+        Assert.Equal("Second", result.Notes[1].Message);
+    }
 }

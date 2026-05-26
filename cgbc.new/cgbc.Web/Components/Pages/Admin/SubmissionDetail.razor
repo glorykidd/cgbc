@@ -256,8 +256,7 @@ else
         noteSaving = true;
         try
         {
-            var note = await CardService.AddNoteAsync(Id, noteText.Trim(), currentUserName);
-            card!.Notes.Add(note);
+            await CardService.AddNoteAsync(Id, noteText.Trim(), currentUserName);
             noteText = "";
             noteSuccess = true;
         }
@@ -281,6 +280,7 @@ else
         try
         {
             await EmailService.ForwardConnectionCardAsync(card!, forwardAddress.Trim());
+            await CardService.AddNoteAsync(Id, $"Forwarded to {forwardAddress.Trim()}", currentUserName);
             showForward = false;
             forwardAddress = "";
         }
