@@ -37,7 +37,9 @@
                     <CardTitle>@slide.Title</CardTitle>
                     <CardText>
                         <p>@slide.Summary<br /><br />
-                            <a href="@slide.Url" class='btn btn-primary'>@slide.ButtonText</a>
+                            <a href="@slide.Url" class='btn btn-primary'
+                                target="@(slide.Url?.StartsWith("http") == true ? "_blank" : "_self")"
+                                rel="@(slide.Url?.StartsWith("http") == true ? "noopener" : null)">@slide.ButtonText</a>
                         </p>
                     </CardText>
                     <CardFooter>
