@@ -26,6 +26,10 @@ public class AdminUserManagementTests : IDisposable
             options.Password.RequireUppercase = true;
             options.Password.RequireNonAlphanumeric = true;
             options.Password.RequiredLength = 8;
+
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
         })
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
@@ -436,5 +440,49 @@ public class AdminUserManagementTests : IDisposable
         {
             Directory.Delete(tempDir, recursive: true);
         }
+    }
+
+    // --- Account Lockout (Identity.Lockout, backing /api/auth/login's lockoutOnFailure: true) ---
+
+    [Fact]
+    public async Task Lockout_FiveFailedAttempts_LocksOutAccount()
+    {
+        var user = await CreateTestUserAsync(password: "Correct@1x");
+        var userManager = GetUserManager();
+
+        for (var i = 0; i < 5; i++)
+        {
+            await userManager.AccessFailedAsync(user);
+        }
+
+        Assert.True(await userManager.IsLockedOutAsync(user));
+    }
+
+    [Fact]
+    public async Task Lockout_FourFailedAttempts_DoesNotLockOutAccount()
+    {
+        var user = await CreateTestUserAsync(password: "Correct@1x");
+        var userManager = GetUserManager();
+
+        for (var i = 0; i < 4; i++)
+        {
+            await userManager.AccessFailedAsync(user);
+        }
+
+        Assert.False(await userManager.IsLockedOutAsync(user));
+    }
+
+    [Fact]
+    public async Task Lockout_SuccessfulLoginResetsFailedAttemptCount()
+    {
+        var user = await CreateTestUserAsync(password: "Correct@1x");
+        var userManager = GetUserManager();
+
+        await userManager.AccessFailedAsync(user);
+        await userManager.AccessFailedAsync(user);
+        await userManager.ResetAccessFailedCountAsync(user);
+
+        var accessFailedCount = await userManager.GetAccessFailedCountAsync(user);
+        Assert.Equal(0, accessFailedCount);
     }
 }
