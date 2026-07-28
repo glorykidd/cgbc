@@ -22,6 +22,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite($"Data Source={dbPath}"));
 builder.Services.AddScoped<EmailService>();
 builder.Services.AddScoped<ConnectionCardService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddHttpClient(nameof(TurnstileService), client => client.Timeout = TimeSpan.FromSeconds(5));
+builder.Services.AddScoped<TurnstileService>();
 
 builder.Services.AddIdentity<AdminUser, IdentityRole>(options =>
 {
@@ -94,6 +97,11 @@ builder.Services.AddResponseCompression(options =>
 });
 
 Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
+
+if (!builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(builder.Configuration["Turnstile:SecretKey"]))
+{
+    Console.WriteLine("WARNING: Turnstile:SecretKey not configured. The Connect form will run without CAPTCHA protection.");
+}
 
 var adminSeedPassword = AdminSeeder.ReadPasswordFromJsonConfig(builder.Environment.ContentRootPath, builder.Environment.EnvironmentName);
 

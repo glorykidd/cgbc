@@ -29,4 +29,10 @@ public class ConnectionCardForm
     public string? ContactReasonOther { get; set; }
 
     public string? PrayerRequests { get; set; }
+
+    /// <summary>
+    /// Hidden honeypot field. Real visitors never see or fill this in; bots that
+    /// blindly fill every input do. Any non-empty value here means reject the submission.
+    /// </summary>
+    public string? Website { get; set; }
 }

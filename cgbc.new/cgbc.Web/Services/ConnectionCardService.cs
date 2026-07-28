@@ -4,19 +4,48 @@ using Microsoft.EntityFrameworkCore;
 
 namespace cgbc.Web.Services;
 
+public enum ConnectionCardSubmitResult
+{
+    Success,
+    SpamRejected,
+    CaptchaFailed,
+    SaveFailed
+}
+
 public class ConnectionCardService
 {
     private readonly AppDbContext _db;
     private readonly EmailService _email;
+    private readonly TurnstileService _turnstile;
 
-    public ConnectionCardService(AppDbContext db, EmailService email)
+    public ConnectionCardService(AppDbContext db, EmailService email, TurnstileService turnstile)
     {
         _db = db;
         _email = email;
+        _turnstile = turnstile;
     }
 
-    public async Task<bool> SubmitAsync(ConnectionCardForm form)
+    /// <summary>
+    /// Minimum time a real visitor needs to fill out this form. Bots that submit
+    /// immediately after the page loads are rejected without touching the database.
+    /// </summary>
+    private static readonly TimeSpan MinimumFillTime = TimeSpan.FromSeconds(3);
+
+    public async Task<ConnectionCardSubmitResult> SubmitAsync(
+        ConnectionCardForm form,
+        DateTime? formRenderedAtUtc = null,
+        string? captchaToken = null,
+        string? remoteIp = null)
     {
+        if (!string.IsNullOrWhiteSpace(form.Website))
+            return ConnectionCardSubmitResult.SpamRejected;
+
+        if (formRenderedAtUtc.HasValue && DateTime.UtcNow - formRenderedAtUtc.Value < MinimumFillTime)
+            return ConnectionCardSubmitResult.SpamRejected;
+
+        if (_turnstile.IsConfigured && !await _turnstile.VerifyAsync(captchaToken, remoteIp))
+            return ConnectionCardSubmitResult.CaptchaFailed;
+
         var card = new ConnectionCard
         {
             Email = form.Email,
@@ -36,15 +65,15 @@ public class ConnectionCardService
         _db.ConnectionCards.Add(card);
         var saved = await _db.SaveChangesAsync() > 0;
 
-        if (saved)
-        {
-            await _email.SendAdminNotificationAsync(card);
+        if (!saved)
+            return ConnectionCardSubmitResult.SaveFailed;
 
-            if (card.WantsContact && card.PreferredCommunication == "Email")
-                await _email.SendVisitorConfirmationAsync(card);
-        }
+        await _email.SendAdminNotificationAsync(card);
 
-        return saved;
+        if (card.WantsContact && card.PreferredCommunication == "Email")
+            await _email.SendVisitorConfirmationAsync(card);
+
+        return ConnectionCardSubmitResult.Success;
     }
 
     public async Task<List<ConnectionCard>> GetSubmissionsAsync(int page, int pageSize)
