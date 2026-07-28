@@ -193,6 +193,17 @@
   private bool captchaError;
   private readonly DateTime renderedAtUtc = DateTime.UtcNow;
 
+  // HttpContext is only populated for the initial HTTP request that establishes
+  // this Blazor Server circuit — it's null during later circuit event callbacks
+  // (e.g. the form submit that triggers HandleSubmit), so the remote IP must be
+  // captured once here rather than read lazily in the submit handler.
+  private string? remoteIp;
+
+  protected override void OnInitialized()
+  {
+    remoteIp = HttpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+  }
+
   private static readonly string[] visitOptions =
   [
     "1st Time Guest",
@@ -263,7 +274,6 @@
 
     try
     {
-      var remoteIp = HttpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
       var success = await CardService.SubmitAsync(form, renderedAtUtc, captchaToken, remoteIp);
       if (success)
       {
