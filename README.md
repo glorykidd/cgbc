@@ -170,6 +170,8 @@ Configure Turnstile via `appsettings.json`:
 
 `SiteKey` is public (rendered in HTML); `SecretKey` should only live in `appsettings.Production.json` or an environment variable override. If `Turnstile:SecretKey` is unset, the widget doesn't render and only the honeypot/timing checks apply — a startup warning is logged outside Development.
 
+The Donate page (`/donate`) reuses the same Turnstile widget/config to guard `StartCheckout` — the Stripe Checkout Session creation — plus a 5-second minimum interval between attempts on the same circuit. This protects against automated cost/abuse against the Stripe API, not payment fraud (Stripe Radar covers card-entry fraud separately).
+
 ### Admin Interface
 
 A password-protected admin area for managing connection card submissions:

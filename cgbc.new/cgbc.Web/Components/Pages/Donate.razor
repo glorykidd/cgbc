@@ -1,9 +1,12 @@
 @page "/donate"
 @rendermode InteractiveServer
 @using Stripe.Checkout
+@using cgbc.Web.Services
 @inject IConfiguration Config
 @inject IJSRuntime JS
 @inject NavigationManager Nav
+@inject TurnstileService Turnstile
+@inject IHttpContextAccessor HttpContextAccessor
 
 <SeoHead Page="donate" PagePath="/donate" />
 
@@ -70,6 +73,19 @@
               </div>
             </div>
 
+            @if (Turnstile.IsConfigured)
+            {
+              <div class="row justify-content-center mb-3">
+                <div class="col-md-6 text-center">
+                  <div id="donate-turnstile" class="d-inline-block"></div>
+                  @if (captchaError)
+                  {
+                    <div class="text-danger small mt-1">Please complete the verification challenge.</div>
+                  }
+                </div>
+              </div>
+            }
+
             @if (!string.IsNullOrEmpty(errorMessage))
             {
               <div class="alert alert-danger text-center">@errorMessage</div>
@@ -102,6 +118,15 @@
   private bool showSuccess;
   private bool isLoading;
   private string? errorMessage;
+  private bool captchaError;
+  private DateTime? lastCheckoutAttemptUtc;
+
+  /// <summary>
+  /// Minimum time between checkout-session creation attempts on this circuit.
+  /// A cheap secondary guard against rapid repeated clicks — Turnstile is the
+  /// primary defense since a bot script can trigger this handler directly.
+  /// </summary>
+  private static readonly TimeSpan MinimumRetryInterval = TimeSpan.FromSeconds(5);
 
   [SupplyParameterFromQuery(Name = "session_id")]
   public string? SessionId { get; set; }
@@ -111,6 +136,11 @@
     if (firstRender && !string.IsNullOrEmpty(SessionId))
     {
       await CheckSessionStatus();
+    }
+
+    if (firstRender && Turnstile.IsConfigured)
+    {
+      await JS.InvokeVoidAsync("cgbcTurnstile.render", "donate-turnstile", Config["Turnstile:SiteKey"]);
     }
   }
 
@@ -135,6 +165,7 @@
   private async Task StartCheckout()
   {
     errorMessage = null;
+    captchaError = false;
 
     if (amount < 1)
     {
@@ -146,6 +177,27 @@
     {
       errorMessage = "For donations over $25,000, please contact the church office.";
       return;
+    }
+
+    if (lastCheckoutAttemptUtc.HasValue && DateTime.UtcNow - lastCheckoutAttemptUtc.Value < MinimumRetryInterval)
+    {
+      errorMessage = "Please wait a moment before trying again.";
+      return;
+    }
+    lastCheckoutAttemptUtc = DateTime.UtcNow;
+
+    if (Turnstile.IsConfigured)
+    {
+      var captchaToken = await JS.InvokeAsync<string?>("cgbcTurnstile.getResponse", "donate-turnstile");
+      var remoteIp = HttpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+
+      if (!await Turnstile.VerifyAsync(captchaToken, remoteIp))
+      {
+        captchaError = true;
+        errorMessage = "There was a problem verifying your submission. Please try again.";
+        await JS.InvokeVoidAsync("cgbcTurnstile.reset", "donate-turnstile");
+        return;
+      }
     }
 
     isLoading = true;
