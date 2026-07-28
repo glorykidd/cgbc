@@ -51,6 +51,10 @@ builder.Services.AddResponseCompression(options =>
 
 Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
+var adminSeedPassword = AdminSeeder.ReadPasswordFromJsonConfig(builder.Environment.ContentRootPath, builder.Environment.EnvironmentName);
+
+AdminSeeder.ValidateStartupConfig(builder.Environment.IsDevelopment(), adminSeedPassword);
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -62,25 +66,8 @@ using (var scope = app.Services.CreateScope())
     var adminConfig = app.Configuration.GetSection("AdminSeed");
     var username = adminConfig["Username"] ?? "admin";
     var email = adminConfig["Email"] ?? "admin@cedargrovebaptist.church";
-    var password = !string.IsNullOrEmpty(adminConfig["Password"]) ? adminConfig["Password"] : "Admin@CGBC2026!";
 
-    var existingUser = await userManager.FindByNameAsync(username);
-    if (existingUser == null)
-    {
-        var adminUser = new AdminUser
-        {
-            UserName = username,
-            Email = email,
-            EmailConfirmed = true,
-            DisplayName = "Administrator"
-        };
-        await userManager.CreateAsync(adminUser, password);
-    }
-    else if (string.IsNullOrEmpty(existingUser.DisplayName))
-    {
-        existingUser.DisplayName = "Administrator";
-        await userManager.UpdateAsync(existingUser);
-    }
+    await AdminSeeder.SeedAsync(userManager, username, email, adminSeedPassword);
 }
 
 if (!app.Environment.IsDevelopment())
