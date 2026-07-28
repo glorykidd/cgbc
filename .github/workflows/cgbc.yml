@@ -71,10 +71,13 @@ jobs:
             exit 1
           }
 
+          # AdminSeed:Password may be set in appsettings.Production.json or, per README,
+          # overridden via the AdminSeed__Password environment variable on the IIS app pool.
           $config = Get-Content $configPath -Raw | ConvertFrom-Json
           $adminPassword = $config.AdminSeed.Password
-          if ([string]::IsNullOrWhiteSpace($adminPassword)) {
-            Write-Error "AdminSeed:Password is not set in appsettings.Production.json. Deploy aborted."
+          $adminPasswordEnvVar = [System.Environment]::GetEnvironmentVariable("AdminSeed__Password", "Machine")
+          if ([string]::IsNullOrWhiteSpace($adminPassword) -and [string]::IsNullOrWhiteSpace($adminPasswordEnvVar)) {
+            Write-Error "AdminSeed:Password is not set in appsettings.Production.json or the AdminSeed__Password environment variable. Deploy aborted."
             exit 1
           }
       - name: Create Backup

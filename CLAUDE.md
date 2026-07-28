@@ -101,6 +101,8 @@ Deployment is automated via GitHub Actions (`.github/workflows/cgbc.yml`):
 
 **Server requirements**: .NET 10 Hosting Bundle, IIS Application Pool (No Managed Code), WebSocket support enabled.
 
+**Admin seed password**: `AdminSeed:Password` must be set on the production server, either in `appsettings.Production.json` or via the `AdminSeed__Password` environment variable on the IIS app pool. The app refuses to start outside Development if it's unset, and the deploy workflow aborts before deploying if it finds it blank in both places.
+
 ## Working with Content
 
 To update church content (staff, ministries, slider images, etc.), edit files in `cgbc.new/cgbc.Web/Content/`. Staff and slider content use markdown with YAML frontmatter. Ministry slider and image lists use JSON.

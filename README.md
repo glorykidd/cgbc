@@ -170,12 +170,14 @@ The admin account is seeded on startup from `appsettings.json`:
   "AdminSeed": {
     "Username": "admin",
     "Email": "admin@cedargrovebaptist.church",
-    "Password": "Admin@CGBC2026!"
+    "Password": ""
   }
 }
 ```
 
 Override these values via environment variables in production (e.g., `AdminSeed__Password`).
+
+Outside the Development environment, `AdminSeed:Password` is required — the app throws at startup and refuses to boot if it's unset (whether via `appsettings.Production.json` or the `AdminSeed__Password` environment variable). If it's unset in Development, the app still starts, but seeding the admin account is skipped and no default account is created.
 
 ## Development
 
