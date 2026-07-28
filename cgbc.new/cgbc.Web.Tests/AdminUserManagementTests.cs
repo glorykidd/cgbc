@@ -337,6 +337,29 @@ public class AdminUserManagementTests : IDisposable
         Assert.Null(found);
     }
 
+    [Fact]
+    public async Task AdminSeeder_SeedAsync_NewUser_WhitespacePassword_UserNotCreated()
+    {
+        var userManager = GetUserManager();
+
+        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "   ");
+
+        var found = await userManager.FindByNameAsync("admin");
+        Assert.Null(found);
+    }
+
+    [Fact]
+    public async Task AdminSeeder_SeedAsync_NewUser_PasswordFailsPolicy_Throws()
+    {
+        var userManager = GetUserManager();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "weak"));
+
+        var found = await userManager.FindByNameAsync("admin");
+        Assert.Null(found);
+    }
+
     // --- AdminSeeder.ValidateStartupConfig (Program.cs startup guard, exercised directly) ---
 
     [Fact]
@@ -349,6 +372,12 @@ public class AdminUserManagementTests : IDisposable
     public void ValidateStartupConfig_NonDevelopment_EmptyPassword_Throws()
     {
         Assert.Throws<InvalidOperationException>(() => AdminSeeder.ValidateStartupConfig(isDevelopment: false, adminSeedPassword: ""));
+    }
+
+    [Fact]
+    public void ValidateStartupConfig_NonDevelopment_WhitespacePassword_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => AdminSeeder.ValidateStartupConfig(isDevelopment: false, adminSeedPassword: "   "));
     }
 
     [Fact]

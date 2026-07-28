@@ -72,8 +72,11 @@ jobs:
           }
 
           $config = Get-Content $configPath -Raw | ConvertFrom-Json
-          $adminPassword = $config.AdminSeed.Password
-          if ([string]::IsNullOrWhiteSpace($adminPassword)) {
+          if (-not $config.AdminSeed) {
+            Write-Error "AdminSeed section is missing from appsettings.Production.json. Deploy aborted."
+            exit 1
+          }
+          if ([string]::IsNullOrWhiteSpace($config.AdminSeed.Password)) {
             Write-Error "AdminSeed:Password is not set in appsettings.Production.json. Deploy aborted."
             exit 1
           }

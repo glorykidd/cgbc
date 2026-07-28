@@ -20,7 +20,7 @@ public static class AdminSeeder
 
     public static void ValidateStartupConfig(bool isDevelopment, string? adminSeedPassword)
     {
-        if (!isDevelopment && string.IsNullOrEmpty(adminSeedPassword))
+        if (!isDevelopment && string.IsNullOrWhiteSpace(adminSeedPassword))
         {
             throw new InvalidOperationException(
                 "AdminSeed:Password must be set in appsettings.Production.json before starting outside the Development environment.");
@@ -36,7 +36,7 @@ public static class AdminSeeder
         var existingUser = await userManager.FindByNameAsync(username);
         if (existingUser == null)
         {
-            if (string.IsNullOrEmpty(password))
+            if (string.IsNullOrWhiteSpace(password))
                 return;
 
             var adminUser = new AdminUser
@@ -46,7 +46,12 @@ public static class AdminSeeder
                 EmailConfirmed = true,
                 DisplayName = "Administrator"
             };
-            await userManager.CreateAsync(adminUser, password);
+            var result = await userManager.CreateAsync(adminUser, password);
+            if (!result.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to seed admin user '{username}': {string.Join("; ", result.Errors.Select(e => e.Description))}");
+            }
         }
         else if (string.IsNullOrEmpty(existingUser.DisplayName))
         {
