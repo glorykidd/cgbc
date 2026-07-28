@@ -128,8 +128,19 @@
   /// </summary>
   private static readonly TimeSpan MinimumRetryInterval = TimeSpan.FromSeconds(5);
 
+  // HttpContext is only populated for the initial HTTP request that establishes
+  // this Blazor Server circuit — it's null during later circuit event callbacks
+  // (e.g. the button click that triggers StartCheckout), so the remote IP must
+  // be captured once here rather than read lazily in the click handler.
+  private string? remoteIp;
+
   [SupplyParameterFromQuery(Name = "session_id")]
   public string? SessionId { get; set; }
+
+  protected override void OnInitialized()
+  {
+    remoteIp = HttpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+  }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)
   {
@@ -189,7 +200,6 @@
     if (Turnstile.IsConfigured)
     {
       var captchaToken = await JS.InvokeAsync<string?>("cgbcTurnstile.getResponse", "donate-turnstile");
-      var remoteIp = HttpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
 
       if (!await Turnstile.VerifyAsync(captchaToken, remoteIp))
       {
