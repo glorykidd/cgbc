@@ -24,13 +24,19 @@ public class ExportEndpointTests : IDisposable
 
         var config = new ConfigurationBuilder().Build();
         var email = new EmailService(config, NullLogger<EmailService>.Instance);
-        _service = new ConnectionCardService(_db, email);
+        var turnstile = new TurnstileService(new NullHttpClientFactory(), config, NullLogger<TurnstileService>.Instance);
+        _service = new ConnectionCardService(_db, email, turnstile);
     }
 
     public void Dispose()
     {
         _db.Database.CloseConnection();
         _db.Dispose();
+    }
+
+    private class NullHttpClientFactory : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new();
     }
 
     // --- Escape helper ---

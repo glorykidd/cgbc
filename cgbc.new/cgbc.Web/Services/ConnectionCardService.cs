@@ -8,15 +8,36 @@ public class ConnectionCardService
 {
     private readonly AppDbContext _db;
     private readonly EmailService _email;
+    private readonly TurnstileService _turnstile;
 
-    public ConnectionCardService(AppDbContext db, EmailService email)
+    public ConnectionCardService(AppDbContext db, EmailService email, TurnstileService turnstile)
     {
         _db = db;
         _email = email;
+        _turnstile = turnstile;
     }
 
-    public async Task<bool> SubmitAsync(ConnectionCardForm form)
+    /// <summary>
+    /// Minimum time a real visitor needs to fill out this form. Bots that submit
+    /// immediately after the page loads are rejected without touching the database.
+    /// </summary>
+    private static readonly TimeSpan MinimumFillTime = TimeSpan.FromSeconds(3);
+
+    public async Task<bool> SubmitAsync(
+        ConnectionCardForm form,
+        DateTime? formRenderedAtUtc = null,
+        string? captchaToken = null,
+        string? remoteIp = null)
     {
+        if (!string.IsNullOrWhiteSpace(form.Website))
+            return false;
+
+        if (formRenderedAtUtc.HasValue && DateTime.UtcNow - formRenderedAtUtc.Value < MinimumFillTime)
+            return false;
+
+        if (_turnstile.IsConfigured && !await _turnstile.VerifyAsync(captchaToken, remoteIp))
+            return false;
+
         var card = new ConnectionCard
         {
             Email = form.Email,
