@@ -362,4 +362,50 @@ public class AdminUserManagementTests : IDisposable
     {
         AdminSeeder.ValidateStartupConfig(isDevelopment: true, adminSeedPassword: null);
     }
+
+    // --- AdminSeeder.ReadPasswordFromJsonConfig (must ignore environment variable overrides) ---
+
+    [Fact]
+    public void ReadPasswordFromJsonConfig_EnvironmentVariableOnly_ReturnsNull()
+    {
+        Environment.SetEnvironmentVariable("AdminSeed__Password", "FromEnvVar@123");
+        try
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(tempDir);
+            try
+            {
+                var password = AdminSeeder.ReadPasswordFromJsonConfig(tempDir, "Production");
+                Assert.Null(password);
+            }
+            finally
+            {
+                Directory.Delete(tempDir, recursive: true);
+            }
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("AdminSeed__Password", null);
+        }
+    }
+
+    [Fact]
+    public void ReadPasswordFromJsonConfig_SetInJsonFile_ReturnsValue()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            File.WriteAllText(
+                Path.Combine(tempDir, "appsettings.Production.json"),
+                """{ "AdminSeed": { "Password": "FromJsonFile@123" } }""");
+
+            var password = AdminSeeder.ReadPasswordFromJsonConfig(tempDir, "Production");
+            Assert.Equal("FromJsonFile@123", password);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
 }
