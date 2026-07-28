@@ -2,8 +2,12 @@ using cgbc.Web.Data;
 using cgbc.Web.Identity;
 using cgbc.Web.Models;
 using cgbc.Web.Services;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Net;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,10 +30,50 @@ builder.Services.AddIdentity<AdminUser, IdentityRole>(options =>
     options.Password.RequireUppercase = true;
     options.Password.RequireNonAlphanumeric = true;
     options.Password.RequiredLength = 8;
+
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
 })
 .AddEntityFrameworkStores<AppDbContext>()
 .AddDefaultTokenProviders()
 .AddClaimsPrincipalFactory<AdminUserClaimsPrincipalFactory>();
+
+// The site runs behind IIS + ASP.NET Core Module on the same box, which
+// forwards the real client IP via X-Forwarded-For. Without this, every
+// request's RemoteIpAddress is the loopback IIS proxy address, collapsing
+// the per-client rate limiter below into a single shared bucket.
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    options.KnownProxies.Add(IPAddress.Loopback);
+    options.KnownProxies.Add(IPAddress.IPv6Loopback);
+});
+
+// Rate limiting, partitioned per client IP so one abusive IP can't exhaust
+// a shared bucket and lock out every other client.
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("login", httpContext => PerIpFixedWindow(httpContext, permitLimit: 5, window: TimeSpan.FromMinutes(5)));
+});
+
+// A null RemoteIpAddress shouldn't happen under normal IIS/Kestrel TCP
+// hosting, but if it does (e.g. a misconfigured reverse proxy), fall back to
+// a single shared "unknown" bucket so all such requests are throttled
+// together. A fresh GUID per request would give each one its own unlimited
+// bucket — defeating rate limiting entirely and leaking memory unboundedly.
+static RateLimitPartition<string> PerIpFixedWindow(HttpContext httpContext, int permitLimit, TimeSpan window)
+{
+    var partitionKey = httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    return RateLimitPartition.GetFixedWindowLimiter(
+        partitionKey,
+        factory: _ => new FixedWindowRateLimiterOptions
+        {
+            PermitLimit = permitLimit,
+            Window = window
+        });
+}
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -76,6 +120,8 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseForwardedHeaders();
+
 app.UseHttpsRedirection();
 app.UseResponseCompression();
 
@@ -93,6 +139,7 @@ app.UseStaticFiles(new StaticFileOptions
     }
 });
 
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
