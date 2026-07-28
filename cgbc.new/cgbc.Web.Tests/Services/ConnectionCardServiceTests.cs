@@ -51,7 +51,7 @@ public class ConnectionCardServiceTests : IDisposable
         var form = CreateValidForm();
         var result = await _service.SubmitAsync(form);
 
-        Assert.True(result);
+        Assert.Equal(ConnectionCardSubmitResult.Success, result);
         Assert.Equal(1, await _db.ConnectionCards.CountAsync());
     }
 
@@ -63,7 +63,7 @@ public class ConnectionCardServiceTests : IDisposable
 
         var result = await _service.SubmitAsync(form);
 
-        Assert.False(result);
+        Assert.Equal(ConnectionCardSubmitResult.SpamRejected, result);
         Assert.Equal(0, await _db.ConnectionCards.CountAsync());
     }
 
@@ -74,7 +74,7 @@ public class ConnectionCardServiceTests : IDisposable
 
         var result = await _service.SubmitAsync(form, formRenderedAtUtc: DateTime.UtcNow);
 
-        Assert.False(result);
+        Assert.Equal(ConnectionCardSubmitResult.SpamRejected, result);
         Assert.Equal(0, await _db.ConnectionCards.CountAsync());
     }
 
@@ -85,7 +85,7 @@ public class ConnectionCardServiceTests : IDisposable
 
         var result = await _service.SubmitAsync(form, formRenderedAtUtc: DateTime.UtcNow.AddSeconds(-5));
 
-        Assert.True(result);
+        Assert.Equal(ConnectionCardSubmitResult.Success, result);
         Assert.Equal(1, await _db.ConnectionCards.CountAsync());
     }
 
@@ -96,7 +96,7 @@ public class ConnectionCardServiceTests : IDisposable
 
         var result = await _service.SubmitAsync(form);
 
-        Assert.True(result);
+        Assert.Equal(ConnectionCardSubmitResult.Success, result);
     }
 
     [Fact]
@@ -502,7 +502,7 @@ public class ConnectionCardServiceTurnstileTests : IDisposable
 
         var result = await service.SubmitAsync(CreateValidForm(), captchaToken: "valid-token", remoteIp: "1.2.3.4");
 
-        Assert.True(result);
+        Assert.Equal(ConnectionCardSubmitResult.Success, result);
         Assert.Equal(1, await _db.ConnectionCards.CountAsync());
     }
 
@@ -513,7 +513,7 @@ public class ConnectionCardServiceTurnstileTests : IDisposable
 
         var result = await service.SubmitAsync(CreateValidForm(), captchaToken: "bad-token", remoteIp: "1.2.3.4");
 
-        Assert.False(result);
+        Assert.Equal(ConnectionCardSubmitResult.CaptchaFailed, result);
         Assert.Equal(0, await _db.ConnectionCards.CountAsync());
     }
 
@@ -524,7 +524,22 @@ public class ConnectionCardServiceTurnstileTests : IDisposable
 
         var result = await service.SubmitAsync(CreateValidForm(), captchaToken: null, remoteIp: "1.2.3.4");
 
-        Assert.False(result);
+        Assert.Equal(ConnectionCardSubmitResult.CaptchaFailed, result);
+        Assert.Equal(0, await _db.ConnectionCards.CountAsync());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_TurnstileConfigured_HoneypotFilled_ReportsSpamNotCaptchaFailure()
+    {
+        // Even with Turnstile configured and a valid token, a filled honeypot should
+        // still report as SpamRejected — not CaptchaFailed — so the UI shows the right message.
+        var service = BuildService(System.Net.HttpStatusCode.OK, """{"success":true}""");
+        var form = CreateValidForm();
+        form.Website = "http://spam.example.com";
+
+        var result = await service.SubmitAsync(form, captchaToken: "valid-token", remoteIp: "1.2.3.4");
+
+        Assert.Equal(ConnectionCardSubmitResult.SpamRejected, result);
         Assert.Equal(0, await _db.ConnectionCards.CountAsync());
     }
 }

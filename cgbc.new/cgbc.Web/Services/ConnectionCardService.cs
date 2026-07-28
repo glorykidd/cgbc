@@ -4,6 +4,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace cgbc.Web.Services;
 
+public enum ConnectionCardSubmitResult
+{
+    Success,
+    SpamRejected,
+    CaptchaFailed,
+    SaveFailed
+}
+
 public class ConnectionCardService
 {
     private readonly AppDbContext _db;
@@ -23,20 +31,20 @@ public class ConnectionCardService
     /// </summary>
     private static readonly TimeSpan MinimumFillTime = TimeSpan.FromSeconds(3);
 
-    public async Task<bool> SubmitAsync(
+    public async Task<ConnectionCardSubmitResult> SubmitAsync(
         ConnectionCardForm form,
         DateTime? formRenderedAtUtc = null,
         string? captchaToken = null,
         string? remoteIp = null)
     {
         if (!string.IsNullOrWhiteSpace(form.Website))
-            return false;
+            return ConnectionCardSubmitResult.SpamRejected;
 
         if (formRenderedAtUtc.HasValue && DateTime.UtcNow - formRenderedAtUtc.Value < MinimumFillTime)
-            return false;
+            return ConnectionCardSubmitResult.SpamRejected;
 
         if (_turnstile.IsConfigured && !await _turnstile.VerifyAsync(captchaToken, remoteIp))
-            return false;
+            return ConnectionCardSubmitResult.CaptchaFailed;
 
         var card = new ConnectionCard
         {
@@ -57,15 +65,15 @@ public class ConnectionCardService
         _db.ConnectionCards.Add(card);
         var saved = await _db.SaveChangesAsync() > 0;
 
-        if (saved)
-        {
-            await _email.SendAdminNotificationAsync(card);
+        if (!saved)
+            return ConnectionCardSubmitResult.SaveFailed;
 
-            if (card.WantsContact && card.PreferredCommunication == "Email")
-                await _email.SendVisitorConfirmationAsync(card);
-        }
+        await _email.SendAdminNotificationAsync(card);
 
-        return saved;
+        if (card.WantsContact && card.PreferredCommunication == "Email")
+            await _email.SendVisitorConfirmationAsync(card);
+
+        return ConnectionCardSubmitResult.Success;
     }
 
     public async Task<List<ConnectionCard>> GetSubmissionsAsync(int page, int pageSize)

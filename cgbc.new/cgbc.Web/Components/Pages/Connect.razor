@@ -274,19 +274,20 @@
 
     try
     {
-      var success = await CardService.SubmitAsync(form, renderedAtUtc, captchaToken, remoteIp);
-      if (success)
+      var result = await CardService.SubmitAsync(form, renderedAtUtc, captchaToken, remoteIp);
+      switch (result)
       {
-        submitted = true;
-      }
-      else
-      {
-        if (Turnstile.IsConfigured)
-        {
+        case ConnectionCardSubmitResult.Success:
+          submitted = true;
+          break;
+        case ConnectionCardSubmitResult.CaptchaFailed:
           captchaError = true;
           await JS.InvokeVoidAsync("cgbcTurnstile.reset", "connect-turnstile");
-        }
-        errorMessage = "There was a problem submitting your card. Please try again.";
+          errorMessage = "There was a problem verifying your submission. Please try again.";
+          break;
+        default:
+          errorMessage = "There was a problem submitting your card. Please try again.";
+          break;
       }
     }
     catch
