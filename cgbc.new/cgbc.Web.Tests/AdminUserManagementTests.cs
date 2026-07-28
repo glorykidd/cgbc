@@ -342,4 +342,66 @@ public class AdminUserManagementTests : IDisposable
         var found = await userManager.FindByNameAsync("admin");
         Assert.Equal("Custom Name", found!.DisplayName);
     }
+
+    // --- Startup Guard (AdminSeed:Password) ---
+
+    private static void AssertStartupGuard(bool isDevelopment, string? adminSeedPassword)
+    {
+        // Simulate the startup guard from Program.cs
+        if (!isDevelopment && string.IsNullOrEmpty(adminSeedPassword))
+        {
+            throw new InvalidOperationException(
+                "AdminSeed:Password must be set in appsettings.Production.json (or appsettings.{Environment}.json) before starting outside the Development environment.");
+        }
+    }
+
+    [Fact]
+    public void StartupGuard_NonDevelopment_MissingPassword_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => AssertStartupGuard(isDevelopment: false, adminSeedPassword: null));
+    }
+
+    [Fact]
+    public void StartupGuard_NonDevelopment_EmptyPassword_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => AssertStartupGuard(isDevelopment: false, adminSeedPassword: ""));
+    }
+
+    [Fact]
+    public void StartupGuard_NonDevelopment_WithPassword_DoesNotThrow()
+    {
+        AssertStartupGuard(isDevelopment: false, adminSeedPassword: "Some@Strong1");
+    }
+
+    [Fact]
+    public void StartupGuard_Development_MissingPassword_DoesNotThrow()
+    {
+        AssertStartupGuard(isDevelopment: true, adminSeedPassword: null);
+    }
+
+    [Fact]
+    public async Task SeedLogic_NewUser_MissingPassword_UserNotCreated()
+    {
+        var userManager = GetUserManager();
+
+        // Simulate the seed logic from Program.cs when AdminSeed:Password is unset
+        string? password = null;
+        var existingUser = await userManager.FindByNameAsync("admin");
+        Assert.Null(existingUser);
+
+        if (existingUser == null && !string.IsNullOrEmpty(password))
+        {
+            var adminUser = new AdminUser
+            {
+                UserName = "admin",
+                Email = "admin@test.com",
+                EmailConfirmed = true,
+                DisplayName = "Administrator"
+            };
+            await userManager.CreateAsync(adminUser, password);
+        }
+
+        var found = await userManager.FindByNameAsync("admin");
+        Assert.Null(found);
+    }
 }

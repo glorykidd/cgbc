@@ -63,10 +63,18 @@ jobs:
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "Test Results:"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value "---------------------------------"
           Add-Content -Path C:/deployment-stage/cgbc-${{ steps.buildid.outputs.formattedTime }}.txt -Value (Get-Content -Path C:/deployment-stage/cgbc-tests-${{ steps.buildid.outputs.formattedTime }}.md)
-      - name: Verify production config exists
+      - name: Verify production config exists and admin password is set
         run: |
-          if (-not (Test-Path "C:/www-root/cedargrovebaptist.church/appsettings.Production.json")) {
+          $configPath = "C:/www-root/cedargrovebaptist.church/appsettings.Production.json"
+          if (-not (Test-Path $configPath)) {
             Write-Error "appsettings.Production.json is missing from the server. Deploy aborted."
+            exit 1
+          }
+
+          $config = Get-Content $configPath -Raw | ConvertFrom-Json
+          $adminPassword = $config.AdminSeed.Password
+          if ([string]::IsNullOrWhiteSpace($adminPassword)) {
+            Write-Error "AdminSeed:Password is not set in appsettings.Production.json. Deploy aborted."
             exit 1
           }
       - name: Create Backup

@@ -51,6 +51,14 @@ builder.Services.AddResponseCompression(options =>
 
 Stripe.StripeConfiguration.ApiKey = builder.Configuration["Stripe:SecretKey"];
 
+// Refuse to boot outside Development without an explicit admin seed password
+if (!builder.Environment.IsDevelopment() &&
+    string.IsNullOrEmpty(builder.Configuration["AdminSeed:Password"]))
+{
+    throw new InvalidOperationException(
+        "AdminSeed:Password must be set in appsettings.Production.json (or appsettings.{Environment}.json) before starting outside the Development environment.");
+}
+
 var app = builder.Build();
 
 using (var scope = app.Services.CreateScope())
@@ -62,19 +70,22 @@ using (var scope = app.Services.CreateScope())
     var adminConfig = app.Configuration.GetSection("AdminSeed");
     var username = adminConfig["Username"] ?? "admin";
     var email = adminConfig["Email"] ?? "admin@cedargrovebaptist.church";
-    var password = !string.IsNullOrEmpty(adminConfig["Password"]) ? adminConfig["Password"] : "Admin@CGBC2026!";
+    var password = adminConfig["Password"];
 
     var existingUser = await userManager.FindByNameAsync(username);
     if (existingUser == null)
     {
-        var adminUser = new AdminUser
+        if (!string.IsNullOrEmpty(password))
         {
-            UserName = username,
-            Email = email,
-            EmailConfirmed = true,
-            DisplayName = "Administrator"
-        };
-        await userManager.CreateAsync(adminUser, password);
+            var adminUser = new AdminUser
+            {
+                UserName = username,
+                Email = email,
+                EmailConfirmed = true,
+                DisplayName = "Administrator"
+            };
+            await userManager.CreateAsync(adminUser, password);
+        }
     }
     else if (string.IsNullOrEmpty(existingUser.DisplayName))
     {
