@@ -195,7 +195,6 @@
       errorMessage = "Please wait a moment before trying again.";
       return;
     }
-    lastCheckoutAttemptUtc = DateTime.UtcNow;
 
     if (Turnstile.IsConfigured)
     {
@@ -210,6 +209,9 @@
       }
     }
 
+    // Only stamp the cooldown once we're actually about to create a Stripe
+    // session — a CAPTCHA failure shouldn't force a legitimate user to wait.
+    lastCheckoutAttemptUtc = DateTime.UtcNow;
     isLoading = true;
 
     try
