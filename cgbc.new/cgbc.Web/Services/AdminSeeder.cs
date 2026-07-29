@@ -29,10 +29,16 @@ public static class AdminSeeder
 
     public static async Task SeedAsync(
         UserManager<AdminUser> userManager,
+        RoleManager<IdentityRole> roleManager,
         string username,
         string email,
         string? password)
     {
+        if (!await roleManager.RoleExistsAsync(AdminRoles.SuperAdmin))
+        {
+            await roleManager.CreateAsync(new IdentityRole(AdminRoles.SuperAdmin));
+        }
+
         var existingUser = await userManager.FindByNameAsync(username);
         if (existingUser == null)
         {
@@ -52,11 +58,21 @@ public static class AdminSeeder
                 throw new InvalidOperationException(
                     $"Failed to seed admin user '{username}': {string.Join("; ", result.Errors.Select(e => e.Description))}");
             }
+
+            await userManager.AddToRoleAsync(adminUser, AdminRoles.SuperAdmin);
         }
-        else if (string.IsNullOrEmpty(existingUser.DisplayName))
+        else
         {
-            existingUser.DisplayName = "Administrator";
-            await userManager.UpdateAsync(existingUser);
+            if (string.IsNullOrEmpty(existingUser.DisplayName))
+            {
+                existingUser.DisplayName = "Administrator";
+                await userManager.UpdateAsync(existingUser);
+            }
+
+            if (!await userManager.IsInRoleAsync(existingUser, AdminRoles.SuperAdmin))
+            {
+                await userManager.AddToRoleAsync(existingUser, AdminRoles.SuperAdmin);
+            }
         }
     }
 }
