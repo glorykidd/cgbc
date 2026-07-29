@@ -19,7 +19,7 @@ public static class AuthEndpoints
             }
             catch (AntiforgeryValidationException)
             {
-                return Results.BadRequest();
+                return Results.Redirect("/admin/login?error=1");
             }
 
             var form = context.Request.Form;
