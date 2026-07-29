@@ -29,10 +29,21 @@ public static class AdminSeeder
 
     public static async Task SeedAsync(
         UserManager<AdminUser> userManager,
+        RoleManager<IdentityRole> roleManager,
         string username,
         string email,
         string? password)
     {
+        if (!await roleManager.RoleExistsAsync(AdminRoles.SuperAdmin))
+        {
+            var createRoleResult = await roleManager.CreateAsync(new IdentityRole(AdminRoles.SuperAdmin));
+            if (!createRoleResult.Succeeded && createRoleResult.Errors.All(e => e.Code != "DuplicateRoleName"))
+            {
+                throw new InvalidOperationException(
+                    $"Failed to create role '{AdminRoles.SuperAdmin}': {string.Join("; ", createRoleResult.Errors.Select(e => e.Description))}");
+            }
+        }
+
         var existingUser = await userManager.FindByNameAsync(username);
         if (existingUser == null)
         {
@@ -52,11 +63,36 @@ public static class AdminSeeder
                 throw new InvalidOperationException(
                     $"Failed to seed admin user '{username}': {string.Join("; ", result.Errors.Select(e => e.Description))}");
             }
+
+            var addRoleResult = await userManager.AddToRoleAsync(adminUser, AdminRoles.SuperAdmin);
+            if (!addRoleResult.Succeeded)
+            {
+                throw new InvalidOperationException(
+                    $"Failed to assign role '{AdminRoles.SuperAdmin}' to seeded admin user '{username}': {string.Join("; ", addRoleResult.Errors.Select(e => e.Description))}");
+            }
         }
-        else if (string.IsNullOrEmpty(existingUser.DisplayName))
+        else
         {
-            existingUser.DisplayName = "Administrator";
-            await userManager.UpdateAsync(existingUser);
+            if (string.IsNullOrEmpty(existingUser.DisplayName))
+            {
+                existingUser.DisplayName = "Administrator";
+                var updateResult = await userManager.UpdateAsync(existingUser);
+                if (!updateResult.Succeeded)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to update DisplayName for seeded admin user '{username}': {string.Join("; ", updateResult.Errors.Select(e => e.Description))}");
+                }
+            }
+
+            if (!await userManager.IsInRoleAsync(existingUser, AdminRoles.SuperAdmin))
+            {
+                var addRoleResult = await userManager.AddToRoleAsync(existingUser, AdminRoles.SuperAdmin);
+                if (!addRoleResult.Succeeded)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to assign role '{AdminRoles.SuperAdmin}' to seeded admin user '{username}': {string.Join("; ", addRoleResult.Errors.Select(e => e.Description))}");
+                }
+            }
         }
     }
 }

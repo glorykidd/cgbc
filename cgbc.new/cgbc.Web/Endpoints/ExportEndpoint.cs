@@ -23,10 +23,22 @@ public static class ExportEndpoint
         }).RequireAuthorization();
     }
 
+    // Characters that spreadsheet apps (Excel, Sheets) interpret as the start
+    // of a formula. A public visitor can submit one of these via the
+    // Connection Card form; without neutralizing it here, opening the export
+    // in a spreadsheet app can execute it (CSV/formula injection, CWE-1236).
+    private static readonly char[] FormulaTriggerChars = ['=', '+', '-', '@', '\t', '\r'];
+
     internal static string Escape(string? value)
     {
         if (string.IsNullOrEmpty(value)) return "";
-        if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+
+        if (FormulaTriggerChars.Contains(value[0]))
+        {
+            value = "'" + value;
+        }
+
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r') || value.Contains('\t'))
         {
             return $"\"{value.Replace("\"", "\"\"")}\"";
         }

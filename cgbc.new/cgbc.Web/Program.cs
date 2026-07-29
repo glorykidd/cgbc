@@ -115,11 +115,12 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<AdminUser>>();
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var adminConfig = app.Configuration.GetSection("AdminSeed");
     var username = adminConfig["Username"] ?? "admin";
     var email = adminConfig["Email"] ?? "admin@cedargrovebaptist.church";
 
-    await AdminSeeder.SeedAsync(userManager, username, email, adminSeedPassword);
+    await AdminSeeder.SeedAsync(userManager, roleManager, username, email, adminSeedPassword);
 }
 
 if (!app.Environment.IsDevelopment())
@@ -161,3 +162,5 @@ cgbc.Web.Endpoints.AuthEndpoints.Map(app);
 cgbc.Web.Endpoints.ExportEndpoint.Map(app);
 
 app.Run();
+
+public partial class Program { }

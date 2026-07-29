@@ -109,7 +109,8 @@ cgbc/
 │   │   ├── Services/                     # ContentService + SeoService tests
 │   │   ├── Endpoints/                    # SitemapEndpoint tests
 │   │   └── Models/                       # Model tests
-│   └── cgbc.api/                         # ASP.NET Core API (unused)
+│   ├── cgbcWeb/                          # Retired Blazor WASM frontend (not in cgbc.sln, kept for reference)
+│   └── cgbc.api/                         # Proof-of-concept API (not in cgbc.sln, kept for reference)
 ├── .github/
 │   └── workflows/
 │       ├── cgbc.yml                      # Production deployment (main branch)
@@ -181,10 +182,13 @@ A password-protected admin area for managing connection card submissions:
 - **Submission Detail** (`/admin/submissions/{id}`) — Complete submission view, auto-marks as read on load
 - **CSV Export** (`/admin/export/csv`) — Download all submissions as a CSV file
 - **Login** (`/admin/login`) — Username/password authentication
+- **Users** (`/admin/users`, `/admin/users/{id}/edit`) — Create/edit/delete admin accounts and reset their passwords; restricted to the `SuperAdmin` role (see below)
 
 #### Authentication
 
 Uses ASP.NET Identity with cookie-based authentication. Login is handled via an HTML form POST to a minimal API endpoint (not Blazor EditForm) so the authentication cookie is set on the HTTP response. All admin pages require authorization via `[Authorize]` attribute.
+
+`/api/auth/login` and `/api/auth/logout` validate an antiforgery token (rendered via `<AntiforgeryToken />` in `Login.razor` and `AdminLayout.razor`'s logout form) before processing the request. A request without a valid token is rejected: login redirects to `/admin/login?error=1`, logout returns `400 Bad Request`. This matters if you're testing either endpoint directly (e.g. with curl) rather than through the rendered form — a bare POST with credentials but no antiforgery token will not authenticate.
 
 The admin account is seeded on startup from `appsettings.json`:
 
@@ -199,6 +203,8 @@ The admin account is seeded on startup from `appsettings.json`:
 ```
 
 Outside the Development environment, `AdminSeed:Password` is required in `appsettings.Production.json` — the app throws at startup and refuses to boot if it's unset. If it's unset in Development, the app still starts, but seeding the admin account is skipped and no default account is created.
+
+The seeded admin account is automatically assigned the `SuperAdmin` role. User-management actions (`/admin/users`, `/admin/users/{id}/edit` — creating, editing, deleting other admin accounts, and resetting their passwords) require this role via `[Authorize(Roles = AdminRoles.SuperAdmin)]`; other authenticated admins can still manage connection card submissions but can't create or modify other admin accounts. Grant the role to additional accounts via `UserManager.AddToRoleAsync`.
 
 ## Development
 
