@@ -11,10 +11,12 @@ Cedar Grove Baptist Church (CGBC) website is a .NET 10.0 Blazor Static SSR appli
 ```
 cgbc.new/
 ├── cgbc.Web/         # Blazor Static SSR host (ACTIVE - main application)
-├── cgbcWeb/          # Blazor WebAssembly frontend (RETIRED - kept for reference)
-├── cgbc.api/         # ASP.NET Core Minimal API (proof of concept, not actively used)
+├── cgbcWeb/          # Blazor WebAssembly frontend (RETIRED - source kept for reference, not in cgbc.sln)
+├── cgbc.api/         # ASP.NET Core Minimal API (proof of concept - source kept for reference, not in cgbc.sln)
 └── cgbc.sln          # Visual Studio solution file
 ```
+
+`cgbcWeb` and `cgbc.api` are excluded from `cgbc.sln` (and therefore from CI build/test and every `dotnet build`/`dotnet test` run against the solution) since neither is deployed. Their source remains in the repo for reference; open their `.csproj` directly if you need to build either one.
 
 The Blazor SSR project (`cgbc.Web`) contains:
 - **Components/Pages/**: 10 Razor components for different routes (Home, About, Connect, Livestream, Ministries, Sermons, Calendar, etc.)
