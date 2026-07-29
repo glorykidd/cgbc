@@ -109,7 +109,8 @@ cgbc/
 │   │   ├── Services/                     # ContentService + SeoService tests
 │   │   ├── Endpoints/                    # SitemapEndpoint tests
 │   │   └── Models/                       # Model tests
-│   └── cgbc.api/                         # ASP.NET Core API (unused)
+│   ├── cgbcWeb/                          # Retired Blazor WASM frontend (not in cgbc.sln, kept for reference)
+│   └── cgbc.api/                         # Proof-of-concept API (not in cgbc.sln, kept for reference)
 ├── .github/
 │   └── workflows/
 │       ├── cgbc.yml                      # Production deployment (main branch)
