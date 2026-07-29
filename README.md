@@ -149,6 +149,29 @@ Content is managed through markdown files with YAML frontmatter, processed by `C
 - **robots.txt** for search engine crawling
 - **Canonical URLs** on all pages
 
+### Connect Form (Bot Protection)
+
+The public Connection Card form (`/connect`) is protected against automated/bot submissions with three layered, server-side checks in `ConnectionCardService.SubmitAsync`:
+
+- **Honeypot field** — a hidden `Website` field real visitors never see or fill in; any non-empty value rejects the submission.
+- **Timing check** — submissions faster than 3 seconds after the form renders are rejected.
+- **Cloudflare Turnstile** (optional) — if `Turnstile:SecretKey` is configured, the widget is required and verified server-side against Cloudflare's `siteverify` API before the card is saved.
+
+Configure Turnstile via `appsettings.json`:
+
+```json
+{
+  "Turnstile": {
+    "SiteKey": "",
+    "SecretKey": ""
+  }
+}
+```
+
+`SiteKey` is public (rendered in HTML); `SecretKey` should only live in `appsettings.Production.json` or an environment variable override. If `Turnstile:SecretKey` is unset, the widget doesn't render and only the honeypot/timing checks apply — a startup warning is logged outside Development.
+
+The Donate page (`/donate`) reuses the same Turnstile widget/config to guard `StartCheckout` — the Stripe Checkout Session creation — plus a 5-second minimum interval between attempts on the same circuit. This protects against automated cost/abuse against the Stripe API, not payment fraud (Stripe Radar covers card-entry fraud separately).
+
 ### Admin Interface
 
 A password-protected admin area for managing connection card submissions:
@@ -170,12 +193,12 @@ The admin account is seeded on startup from `appsettings.json`:
   "AdminSeed": {
     "Username": "admin",
     "Email": "admin@cedargrovebaptist.church",
-    "Password": "Admin@CGBC2026!"
+    "Password": ""
   }
 }
 ```
 
-Override these values via environment variables in production (e.g., `AdminSeed__Password`).
+Outside the Development environment, `AdminSeed:Password` is required in `appsettings.Production.json` — the app throws at startup and refuses to boot if it's unset. If it's unset in Development, the app still starts, but seeding the admin account is skipped and no default account is created.
 
 ## Development
 

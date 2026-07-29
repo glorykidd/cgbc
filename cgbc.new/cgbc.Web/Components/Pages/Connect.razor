@@ -1,6 +1,10 @@
 @page "/connect"
 @rendermode InteractiveServer
 @inject ConnectionCardService CardService
+@inject TurnstileService Turnstile
+@inject IConfiguration Config
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IJSRuntime JS
 
 <SeoHead Page="connect" PagePath="/connect" />
 
@@ -35,6 +39,11 @@
             <p class="mb-4">Fill out our connection card to let us know you visited Cedar Grove Baptist Church. We'd love to connect with you and help you get involved.</p>
             <EditForm Model="form" OnValidSubmit="HandleSubmit" FormName="connectionCard">
               <DataAnnotationsValidator />
+
+              <div style="position: absolute; left: -9999px;" aria-hidden="true">
+                <label for="website">Website</label>
+                <InputText id="website" @bind-Value="form.Website" tabindex="-1" autocomplete="off" />
+              </div>
 
               <div class="mb-3">
                 <label class="form-label">Email <span class="text-danger">*</span></label>
@@ -137,6 +146,17 @@
                   placeholder="Share any prayer requests here..." />
               </div>
 
+              @if (Turnstile.IsConfigured)
+              {
+                <div class="mb-3">
+                  <div id="connect-turnstile"></div>
+                  @if (captchaError)
+                  {
+                    <div class="text-danger small mt-1">Please complete the verification challenge.</div>
+                  }
+                </div>
+              }
+
               @if (!string.IsNullOrEmpty(errorMessage))
               {
                 <div class="alert alert-danger">@errorMessage</div>
@@ -170,6 +190,19 @@
   private bool isSubmitting;
   private string? errorMessage;
   private string? contactReasonError;
+  private bool captchaError;
+  private readonly DateTime renderedAtUtc = DateTime.UtcNow;
+
+  // HttpContext is only populated for the initial HTTP request that establishes
+  // this Blazor Server circuit — it's null during later circuit event callbacks
+  // (e.g. the form submit that triggers HandleSubmit), so the remote IP must be
+  // captured once here rather than read lazily in the submit handler.
+  private string? remoteIp;
+
+  protected override void OnInitialized()
+  {
+    remoteIp = HttpContextAccessor.HttpContext?.Connection.RemoteIpAddress?.ToString();
+  }
 
   private static readonly string[] visitOptions =
   [
@@ -211,11 +244,20 @@
     contactReasonError = null;
   }
 
+  protected override async Task OnAfterRenderAsync(bool firstRender)
+  {
+    if (firstRender && Turnstile.IsConfigured)
+    {
+      await JS.InvokeVoidAsync("cgbcTurnstile.render", "connect-turnstile", Config["Turnstile:SiteKey"]);
+    }
+  }
+
   private async Task HandleSubmit()
   {
     isSubmitting = true;
     errorMessage = null;
     contactReasonError = null;
+    captchaError = false;
 
     if (form.ContactReasons.Count == 0)
     {
@@ -224,16 +266,28 @@
       return;
     }
 
+    string? captchaToken = null;
+    if (Turnstile.IsConfigured)
+    {
+      captchaToken = await JS.InvokeAsync<string?>("cgbcTurnstile.getResponse", "connect-turnstile");
+    }
+
     try
     {
-      var success = await CardService.SubmitAsync(form);
-      if (success)
+      var result = await CardService.SubmitAsync(form, renderedAtUtc, captchaToken, remoteIp);
+      switch (result)
       {
-        submitted = true;
-      }
-      else
-      {
-        errorMessage = "There was a problem submitting your card. Please try again.";
+        case ConnectionCardSubmitResult.Success:
+          submitted = true;
+          break;
+        case ConnectionCardSubmitResult.CaptchaFailed:
+          captchaError = true;
+          await JS.InvokeVoidAsync("cgbcTurnstile.reset", "connect-turnstile");
+          errorMessage = "There was a problem verifying your submission. Please try again.";
+          break;
+        default:
+          errorMessage = "There was a problem submitting your card. Please try again.";
+          break;
       }
     }
     catch

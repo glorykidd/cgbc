@@ -16,15 +16,20 @@ public static class AuthEndpoints
             var password = form["password"].ToString();
 
             var result = await signInManager.PasswordSignInAsync(
-                username, password, isPersistent: false, lockoutOnFailure: false);
+                username, password, isPersistent: false, lockoutOnFailure: true);
 
             if (result.Succeeded)
             {
                 return Results.Redirect("/admin");
             }
 
+            if (result.IsLockedOut)
+            {
+                return Results.Redirect("/admin/login?error=lockedout");
+            }
+
             return Results.Redirect("/admin/login?error=1");
-        });
+        }).RequireRateLimiting("login");
 
         app.MapPost("/api/auth/logout", async (SignInManager<AdminUser> signInManager) =>
         {

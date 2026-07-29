@@ -24,7 +24,9 @@ public class ConnectionCardServiceTests : IDisposable
         // EmailService with empty config so sends are skipped (no SMTP configured)
         var config = new ConfigurationBuilder().Build();
         var email = new EmailService(config, NullLogger<EmailService>.Instance);
-        _service = new ConnectionCardService(_db, email);
+        // TurnstileService with empty config so IsConfigured is false and CAPTCHA verification is skipped
+        var turnstile = new TurnstileService(new NullHttpClientFactory(), config, NullLogger<TurnstileService>.Instance);
+        _service = new ConnectionCardService(_db, email, turnstile);
     }
 
     public void Dispose()
@@ -49,8 +51,52 @@ public class ConnectionCardServiceTests : IDisposable
         var form = CreateValidForm();
         var result = await _service.SubmitAsync(form);
 
-        Assert.True(result);
+        Assert.Equal(ConnectionCardSubmitResult.Success, result);
         Assert.Equal(1, await _db.ConnectionCards.CountAsync());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_HoneypotFilled_RejectsWithoutSavingCard()
+    {
+        var form = CreateValidForm();
+        form.Website = "http://spam.example.com";
+
+        var result = await _service.SubmitAsync(form);
+
+        Assert.Equal(ConnectionCardSubmitResult.SpamRejected, result);
+        Assert.Equal(0, await _db.ConnectionCards.CountAsync());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_SubmittedTooQuickly_RejectsWithoutSavingCard()
+    {
+        var form = CreateValidForm();
+
+        var result = await _service.SubmitAsync(form, formRenderedAtUtc: DateTime.UtcNow);
+
+        Assert.Equal(ConnectionCardSubmitResult.SpamRejected, result);
+        Assert.Equal(0, await _db.ConnectionCards.CountAsync());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_SubmittedAfterMinimumFillTime_Succeeds()
+    {
+        var form = CreateValidForm();
+
+        var result = await _service.SubmitAsync(form, formRenderedAtUtc: DateTime.UtcNow.AddSeconds(-5));
+
+        Assert.Equal(ConnectionCardSubmitResult.Success, result);
+        Assert.Equal(1, await _db.ConnectionCards.CountAsync());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_NoFormRenderedAtProvided_SkipsTimingCheck()
+    {
+        var form = CreateValidForm();
+
+        var result = await _service.SubmitAsync(form);
+
+        Assert.Equal(ConnectionCardSubmitResult.Success, result);
     }
 
     [Fact]
@@ -390,5 +436,110 @@ public class ConnectionCardServiceTests : IDisposable
 
         Assert.Equal("First", result!.Notes[0].Message);
         Assert.Equal("Second", result.Notes[1].Message);
+    }
+
+    private class NullHttpClientFactory : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new();
+    }
+}
+
+public class ConnectionCardServiceTurnstileTests : IDisposable
+{
+    private sealed class StubHandler(System.Net.HttpStatusCode statusCode, string content) : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
+            Task.FromResult(new HttpResponseMessage(statusCode) { Content = new StringContent(content) });
+    }
+
+    private sealed class StubHttpClientFactory(HttpMessageHandler handler) : IHttpClientFactory
+    {
+        public HttpClient CreateClient(string name) => new(handler);
+    }
+
+    private readonly AppDbContext _db;
+
+    public ConnectionCardServiceTurnstileTests()
+    {
+        var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite("DataSource=:memory:")
+            .Options;
+        _db = new AppDbContext(options);
+        _db.Database.OpenConnection();
+        _db.Database.EnsureCreated();
+    }
+
+    public void Dispose()
+    {
+        _db.Database.CloseConnection();
+        _db.Dispose();
+    }
+
+    private static ConnectionCardForm CreateValidForm() => new()
+    {
+        Email = "test@example.com",
+        Name = "John Doe",
+        VisitStatus = "1st Time Guest",
+        WantsContact = true,
+        PreferredCommunication = "Email",
+        ContactReasons = ["Baptism"]
+    };
+
+    private ConnectionCardService BuildService(System.Net.HttpStatusCode statusCode, string content)
+    {
+        var config = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?> { ["Turnstile:SecretKey"] = "some-secret" })
+            .Build();
+        var email = new EmailService(config, NullLogger<EmailService>.Instance);
+        var turnstile = new TurnstileService(new StubHttpClientFactory(new StubHandler(statusCode, content)), config, NullLogger<TurnstileService>.Instance);
+        return new ConnectionCardService(_db, email, turnstile);
+    }
+
+    [Fact]
+    public async Task SubmitAsync_TurnstileConfigured_TokenVerified_Succeeds()
+    {
+        var service = BuildService(System.Net.HttpStatusCode.OK, """{"success":true}""");
+
+        var result = await service.SubmitAsync(CreateValidForm(), captchaToken: "valid-token", remoteIp: "1.2.3.4");
+
+        Assert.Equal(ConnectionCardSubmitResult.Success, result);
+        Assert.Equal(1, await _db.ConnectionCards.CountAsync());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_TurnstileConfigured_TokenRejected_FailsWithoutSavingCard()
+    {
+        var service = BuildService(System.Net.HttpStatusCode.OK, """{"success":false}""");
+
+        var result = await service.SubmitAsync(CreateValidForm(), captchaToken: "bad-token", remoteIp: "1.2.3.4");
+
+        Assert.Equal(ConnectionCardSubmitResult.CaptchaFailed, result);
+        Assert.Equal(0, await _db.ConnectionCards.CountAsync());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_TurnstileConfigured_NoTokenProvided_FailsWithoutSavingCard()
+    {
+        var service = BuildService(System.Net.HttpStatusCode.OK, """{"success":true}""");
+
+        var result = await service.SubmitAsync(CreateValidForm(), captchaToken: null, remoteIp: "1.2.3.4");
+
+        Assert.Equal(ConnectionCardSubmitResult.CaptchaFailed, result);
+        Assert.Equal(0, await _db.ConnectionCards.CountAsync());
+    }
+
+    [Fact]
+    public async Task SubmitAsync_TurnstileConfigured_HoneypotFilled_ReportsSpamNotCaptchaFailure()
+    {
+        // Even with Turnstile configured and a valid token, a filled honeypot should
+        // still report as SpamRejected — not CaptchaFailed — so the UI shows the right message.
+        var service = BuildService(System.Net.HttpStatusCode.OK, """{"success":true}""");
+        var form = CreateValidForm();
+        form.Website = "http://spam.example.com";
+
+        var result = await service.SubmitAsync(form, captchaToken: "valid-token", remoteIp: "1.2.3.4");
+
+        Assert.Equal(ConnectionCardSubmitResult.SpamRejected, result);
+        Assert.Equal(0, await _db.ConnectionCards.CountAsync());
     }
 }

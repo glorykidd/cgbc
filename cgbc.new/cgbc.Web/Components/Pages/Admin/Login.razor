@@ -7,10 +7,12 @@
         <div class="card-body p-4">
             <h3 class="card-title text-center mb-4">CGBC Admin</h3>
 
-            @if (QueryHelpers.ParseQuery(new Uri(NavigationManager.Uri).Query).TryGetValue("error", out _))
+            @if (QueryHelpers.ParseQuery(new Uri(NavigationManager.Uri).Query).TryGetValue("error", out var error))
             {
                 <div class="alert alert-danger" role="alert">
-                    Invalid username or password.
+                    @(error == "lockedout"
+                        ? "Too many failed attempts. This account is temporarily locked — please try again in a few minutes."
+                        : "Invalid username or password.")
                 </div>
             }
 

@@ -1,5 +1,6 @@
 using cgbc.Web.Data;
 using cgbc.Web.Models;
+using cgbc.Web.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,10 @@ public class AdminUserManagementTests : IDisposable
             options.Password.RequireUppercase = true;
             options.Password.RequireNonAlphanumeric = true;
             options.Password.RequiredLength = 8;
+
+            options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+            options.Lockout.MaxFailedAccessAttempts = 5;
+            options.Lockout.AllowedForNewUsers = true;
         })
         .AddEntityFrameworkStores<AppDbContext>()
         .AddDefaultTokenProviders();
@@ -275,71 +280,209 @@ public class AdminUserManagementTests : IDisposable
         Assert.Equal("testuser", found.UserName);
     }
 
-    // --- Seed Logic Simulation ---
+    // --- AdminSeeder (Program.cs seed logic, exercised directly) ---
 
     [Fact]
-    public async Task SeedLogic_CreatesUserWithDisplayName()
+    public async Task AdminSeeder_SeedAsync_NewUser_CreatesUserWithDisplayName()
     {
         var userManager = GetUserManager();
 
-        // Simulate the seed logic from Program.cs
-        var username = "admin";
-        var existingUser = await userManager.FindByNameAsync(username);
-        Assert.Null(existingUser);
+        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "Admin@Set1");
 
-        var adminUser = new AdminUser
-        {
-            UserName = username,
-            Email = "admin@test.com",
-            EmailConfirmed = true,
-            DisplayName = "Administrator"
-        };
-        var result = await userManager.CreateAsync(adminUser, "Admin@CGBC2026!");
-        Assert.True(result.Succeeded);
-
-        var seeded = await userManager.FindByNameAsync(username);
+        var seeded = await userManager.FindByNameAsync("admin");
         Assert.NotNull(seeded);
         Assert.Equal("Administrator", seeded.DisplayName);
     }
 
     [Fact]
-    public async Task SeedLogic_ExistingUserWithoutDisplayName_GetsUpdated()
+    public async Task AdminSeeder_SeedAsync_ExistingUserWithoutDisplayName_GetsUpdated()
     {
         // Create user without DisplayName (simulating pre-migration state)
-        var user = await CreateTestUserAsync(username: "admin", displayName: null);
+        await CreateTestUserAsync(username: "admin", displayName: null);
         var userManager = GetUserManager();
 
-        // Simulate the seed update logic
-        var existingUser = await userManager.FindByNameAsync("admin");
-        Assert.NotNull(existingUser);
-
-        if (string.IsNullOrEmpty(existingUser.DisplayName))
-        {
-            existingUser.DisplayName = "Administrator";
-            await userManager.UpdateAsync(existingUser);
-        }
+        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "Admin@Set1");
 
         var updated = await userManager.FindByNameAsync("admin");
         Assert.Equal("Administrator", updated!.DisplayName);
     }
 
     [Fact]
-    public async Task SeedLogic_ExistingUserWithDisplayName_NotOverwritten()
+    public async Task AdminSeeder_SeedAsync_ExistingUserWithDisplayName_NotOverwritten()
     {
-        var user = await CreateTestUserAsync(username: "admin", displayName: "Custom Name");
+        await CreateTestUserAsync(username: "admin", displayName: "Custom Name");
         var userManager = GetUserManager();
 
-        var existingUser = await userManager.FindByNameAsync("admin");
-        Assert.NotNull(existingUser);
-
-        // Simulate the seed update logic — should NOT overwrite
-        if (string.IsNullOrEmpty(existingUser.DisplayName))
-        {
-            existingUser.DisplayName = "Administrator";
-            await userManager.UpdateAsync(existingUser);
-        }
+        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "Admin@Set1");
 
         var found = await userManager.FindByNameAsync("admin");
         Assert.Equal("Custom Name", found!.DisplayName);
+    }
+
+    [Fact]
+    public async Task AdminSeeder_SeedAsync_NewUser_MissingPassword_UserNotCreated()
+    {
+        var userManager = GetUserManager();
+
+        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", null);
+
+        var found = await userManager.FindByNameAsync("admin");
+        Assert.Null(found);
+    }
+
+    [Fact]
+    public async Task AdminSeeder_SeedAsync_NewUser_EmptyPassword_UserNotCreated()
+    {
+        var userManager = GetUserManager();
+
+        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "");
+
+        var found = await userManager.FindByNameAsync("admin");
+        Assert.Null(found);
+    }
+
+    [Fact]
+    public async Task AdminSeeder_SeedAsync_NewUser_WhitespacePassword_UserNotCreated()
+    {
+        var userManager = GetUserManager();
+
+        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "   ");
+
+        var found = await userManager.FindByNameAsync("admin");
+        Assert.Null(found);
+    }
+
+    [Fact]
+    public async Task AdminSeeder_SeedAsync_NewUser_PasswordFailsPolicy_Throws()
+    {
+        var userManager = GetUserManager();
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "weak"));
+
+        var found = await userManager.FindByNameAsync("admin");
+        Assert.Null(found);
+    }
+
+    // --- AdminSeeder.ValidateStartupConfig (Program.cs startup guard, exercised directly) ---
+
+    [Fact]
+    public void ValidateStartupConfig_NonDevelopment_MissingPassword_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => AdminSeeder.ValidateStartupConfig(isDevelopment: false, adminSeedPassword: null));
+    }
+
+    [Fact]
+    public void ValidateStartupConfig_NonDevelopment_EmptyPassword_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => AdminSeeder.ValidateStartupConfig(isDevelopment: false, adminSeedPassword: ""));
+    }
+
+    [Fact]
+    public void ValidateStartupConfig_NonDevelopment_WhitespacePassword_Throws()
+    {
+        Assert.Throws<InvalidOperationException>(() => AdminSeeder.ValidateStartupConfig(isDevelopment: false, adminSeedPassword: "   "));
+    }
+
+    [Fact]
+    public void ValidateStartupConfig_NonDevelopment_WithPassword_DoesNotThrow()
+    {
+        AdminSeeder.ValidateStartupConfig(isDevelopment: false, adminSeedPassword: "Some@Strong1");
+    }
+
+    [Fact]
+    public void ValidateStartupConfig_Development_MissingPassword_DoesNotThrow()
+    {
+        AdminSeeder.ValidateStartupConfig(isDevelopment: true, adminSeedPassword: null);
+    }
+
+    // --- AdminSeeder.ReadPasswordFromJsonConfig (must ignore environment variable overrides) ---
+
+    [Fact]
+    public void ReadPasswordFromJsonConfig_EnvironmentVariableOnly_ReturnsNull()
+    {
+        Environment.SetEnvironmentVariable("AdminSeed__Password", "FromEnvVar@123");
+        try
+        {
+            var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            Directory.CreateDirectory(tempDir);
+            try
+            {
+                var password = AdminSeeder.ReadPasswordFromJsonConfig(tempDir, "Production");
+                Assert.Null(password);
+            }
+            finally
+            {
+                Directory.Delete(tempDir, recursive: true);
+            }
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("AdminSeed__Password", null);
+        }
+    }
+
+    [Fact]
+    public void ReadPasswordFromJsonConfig_SetInJsonFile_ReturnsValue()
+    {
+        var tempDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+        Directory.CreateDirectory(tempDir);
+        try
+        {
+            File.WriteAllText(
+                Path.Combine(tempDir, "appsettings.Production.json"),
+                """{ "AdminSeed": { "Password": "FromJsonFile@123" } }""");
+
+            var password = AdminSeeder.ReadPasswordFromJsonConfig(tempDir, "Production");
+            Assert.Equal("FromJsonFile@123", password);
+        }
+        finally
+        {
+            Directory.Delete(tempDir, recursive: true);
+        }
+    }
+
+    // --- Account Lockout (Identity.Lockout, backing /api/auth/login's lockoutOnFailure: true) ---
+
+    [Fact]
+    public async Task Lockout_FiveFailedAttempts_LocksOutAccount()
+    {
+        var user = await CreateTestUserAsync(password: "Correct@1x");
+        var userManager = GetUserManager();
+
+        for (var i = 0; i < 5; i++)
+        {
+            await userManager.AccessFailedAsync(user);
+        }
+
+        Assert.True(await userManager.IsLockedOutAsync(user));
+    }
+
+    [Fact]
+    public async Task Lockout_FourFailedAttempts_DoesNotLockOutAccount()
+    {
+        var user = await CreateTestUserAsync(password: "Correct@1x");
+        var userManager = GetUserManager();
+
+        for (var i = 0; i < 4; i++)
+        {
+            await userManager.AccessFailedAsync(user);
+        }
+
+        Assert.False(await userManager.IsLockedOutAsync(user));
+    }
+
+    [Fact]
+    public async Task Lockout_SuccessfulLoginResetsFailedAttemptCount()
+    {
+        var user = await CreateTestUserAsync(password: "Correct@1x");
+        var userManager = GetUserManager();
+
+        await userManager.AccessFailedAsync(user);
+        await userManager.AccessFailedAsync(user);
+        await userManager.ResetAccessFailedCountAsync(user);
+
+        var accessFailedCount = await userManager.GetAccessFailedCountAsync(user);
+        Assert.Equal(0, accessFailedCount);
     }
 }
