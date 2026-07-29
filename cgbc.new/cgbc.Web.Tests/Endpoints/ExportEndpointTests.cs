@@ -72,6 +72,12 @@ public class ExportEndpointTests : IDisposable
     }
 
     [Fact]
+    public void Escape_QuotesValue_WhenContainsCarriageReturn()
+    {
+        Assert.Equal("\"line1\rline2\"", ExportEndpoint.Escape("line1\rline2"));
+    }
+
+    [Fact]
     public void Escape_DoublesInternalQuotes()
     {
         Assert.Equal("\"say \"\"hello\"\"\"", ExportEndpoint.Escape("say \"hello\""));
@@ -109,8 +115,10 @@ public class ExportEndpointTests : IDisposable
     [Fact]
     public void Escape_PrefixesLeadingApostrophe_WhenValueStartsWithCarriageReturn()
     {
+        // \r must also trigger CSV quoting, not just the formula-prefix — an
+        // unquoted bare \r in a field can be misread as a row terminator.
         var result = ExportEndpoint.Escape("\r=1+1");
-        Assert.StartsWith("'\r", result);
+        Assert.Equal("\"'\r=1+1\"", result);
     }
 
     [Fact]
