@@ -53,6 +53,9 @@ public class AdminUserManagementTests : IDisposable
     private UserManager<AdminUser> GetUserManager() =>
         _serviceProvider.GetRequiredService<UserManager<AdminUser>>();
 
+    private RoleManager<IdentityRole> GetRoleManager() =>
+        _serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+
     private async Task<AdminUser> CreateTestUserAsync(
         string username = "testuser",
         string email = "test@test.com",
@@ -286,12 +289,25 @@ public class AdminUserManagementTests : IDisposable
     public async Task AdminSeeder_SeedAsync_NewUser_CreatesUserWithDisplayName()
     {
         var userManager = GetUserManager();
+        var roleManager = GetRoleManager();
 
-        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "Admin@Set1");
+        await AdminSeeder.SeedAsync(userManager, roleManager, "admin", "admin@test.com", "Admin@Set1");
 
         var seeded = await userManager.FindByNameAsync("admin");
         Assert.NotNull(seeded);
         Assert.Equal("Administrator", seeded.DisplayName);
+    }
+
+    [Fact]
+    public async Task AdminSeeder_SeedAsync_NewUser_AssignsSuperAdminRole()
+    {
+        var userManager = GetUserManager();
+        var roleManager = GetRoleManager();
+
+        await AdminSeeder.SeedAsync(userManager, roleManager, "admin", "admin@test.com", "Admin@Set1");
+
+        var seeded = await userManager.FindByNameAsync("admin");
+        Assert.True(await userManager.IsInRoleAsync(seeded!, AdminRoles.SuperAdmin));
     }
 
     [Fact]
@@ -300,8 +316,9 @@ public class AdminUserManagementTests : IDisposable
         // Create user without DisplayName (simulating pre-migration state)
         await CreateTestUserAsync(username: "admin", displayName: null);
         var userManager = GetUserManager();
+        var roleManager = GetRoleManager();
 
-        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "Admin@Set1");
+        await AdminSeeder.SeedAsync(userManager, roleManager, "admin", "admin@test.com", "Admin@Set1");
 
         var updated = await userManager.FindByNameAsync("admin");
         Assert.Equal("Administrator", updated!.DisplayName);
@@ -312,19 +329,35 @@ public class AdminUserManagementTests : IDisposable
     {
         await CreateTestUserAsync(username: "admin", displayName: "Custom Name");
         var userManager = GetUserManager();
+        var roleManager = GetRoleManager();
 
-        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "Admin@Set1");
+        await AdminSeeder.SeedAsync(userManager, roleManager, "admin", "admin@test.com", "Admin@Set1");
 
         var found = await userManager.FindByNameAsync("admin");
         Assert.Equal("Custom Name", found!.DisplayName);
     }
 
     [Fact]
+    public async Task AdminSeeder_SeedAsync_ExistingUserWithoutSuperAdminRole_GetsAssigned()
+    {
+        // Simulate a pre-existing admin user created before the SuperAdmin role existed
+        await CreateTestUserAsync(username: "admin", displayName: "Administrator");
+        var userManager = GetUserManager();
+        var roleManager = GetRoleManager();
+
+        await AdminSeeder.SeedAsync(userManager, roleManager, "admin", "admin@test.com", "Admin@Set1");
+
+        var found = await userManager.FindByNameAsync("admin");
+        Assert.True(await userManager.IsInRoleAsync(found!, AdminRoles.SuperAdmin));
+    }
+
+    [Fact]
     public async Task AdminSeeder_SeedAsync_NewUser_MissingPassword_UserNotCreated()
     {
         var userManager = GetUserManager();
+        var roleManager = GetRoleManager();
 
-        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", null);
+        await AdminSeeder.SeedAsync(userManager, roleManager, "admin", "admin@test.com", null);
 
         var found = await userManager.FindByNameAsync("admin");
         Assert.Null(found);
@@ -334,8 +367,9 @@ public class AdminUserManagementTests : IDisposable
     public async Task AdminSeeder_SeedAsync_NewUser_EmptyPassword_UserNotCreated()
     {
         var userManager = GetUserManager();
+        var roleManager = GetRoleManager();
 
-        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "");
+        await AdminSeeder.SeedAsync(userManager, roleManager, "admin", "admin@test.com", "");
 
         var found = await userManager.FindByNameAsync("admin");
         Assert.Null(found);
@@ -345,8 +379,9 @@ public class AdminUserManagementTests : IDisposable
     public async Task AdminSeeder_SeedAsync_NewUser_WhitespacePassword_UserNotCreated()
     {
         var userManager = GetUserManager();
+        var roleManager = GetRoleManager();
 
-        await AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "   ");
+        await AdminSeeder.SeedAsync(userManager, roleManager, "admin", "admin@test.com", "   ");
 
         var found = await userManager.FindByNameAsync("admin");
         Assert.Null(found);
@@ -356,9 +391,10 @@ public class AdminUserManagementTests : IDisposable
     public async Task AdminSeeder_SeedAsync_NewUser_PasswordFailsPolicy_Throws()
     {
         var userManager = GetUserManager();
+        var roleManager = GetRoleManager();
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => AdminSeeder.SeedAsync(userManager, "admin", "admin@test.com", "weak"));
+            () => AdminSeeder.SeedAsync(userManager, roleManager, "admin", "admin@test.com", "weak"));
 
         var found = await userManager.FindByNameAsync("admin");
         Assert.Null(found);

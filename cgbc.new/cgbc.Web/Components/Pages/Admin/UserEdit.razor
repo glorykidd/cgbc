@@ -1,6 +1,7 @@
 @page "/admin/users/new"
 @page "/admin/users/{Id}/edit"
-@attribute [Authorize]
+@using cgbc.Web.Models
+@attribute [Authorize(Roles = AdminRoles.SuperAdmin)]
 @layout AdminLayout
 @rendermode InteractiveServer
 

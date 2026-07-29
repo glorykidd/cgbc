@@ -181,6 +181,7 @@ A password-protected admin area for managing connection card submissions:
 - **Submission Detail** (`/admin/submissions/{id}`) — Complete submission view, auto-marks as read on load
 - **CSV Export** (`/admin/export/csv`) — Download all submissions as a CSV file
 - **Login** (`/admin/login`) — Username/password authentication
+- **Users** (`/admin/users`, `/admin/users/{id}/edit`) — Create/edit/delete admin accounts and reset their passwords; restricted to the `SuperAdmin` role (see below)
 
 #### Authentication
 
@@ -199,6 +200,8 @@ The admin account is seeded on startup from `appsettings.json`:
 ```
 
 Outside the Development environment, `AdminSeed:Password` is required in `appsettings.Production.json` — the app throws at startup and refuses to boot if it's unset. If it's unset in Development, the app still starts, but seeding the admin account is skipped and no default account is created.
+
+The seeded admin account is automatically assigned the `SuperAdmin` role. User-management actions (`/admin/users`, `/admin/users/{id}/edit` — creating, editing, deleting other admin accounts, and resetting their passwords) require this role via `[Authorize(Roles = AdminRoles.SuperAdmin)]`; other authenticated admins can still manage connection card submissions but can't create or modify other admin accounts. Grant the role to additional accounts via `UserManager.AddToRoleAsync`.
 
 ## Development
 
