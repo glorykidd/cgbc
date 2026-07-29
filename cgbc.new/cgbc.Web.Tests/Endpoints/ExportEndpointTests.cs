@@ -85,4 +85,50 @@ public class ExportEndpointTests : IDisposable
         Assert.EndsWith("\"", result);
         Assert.Contains("\"\"", result);
     }
+
+    // --- Formula/DDE injection (CWE-1236) ---
+
+    [Theory]
+    [InlineData("=cmd|'/c calc'!A1")]
+    [InlineData("+1+1")]
+    [InlineData("-1+1")]
+    [InlineData("@SUM(A1:A2)")]
+    public void Escape_PrefixesLeadingApostrophe_WhenValueStartsWithFormulaTriggerChar(string value)
+    {
+        var result = ExportEndpoint.Escape(value);
+        Assert.StartsWith("'" + value, result);
+    }
+
+    [Fact]
+    public void Escape_PrefixesLeadingApostrophe_WhenValueStartsWithTab()
+    {
+        var result = ExportEndpoint.Escape("\tHYPERLINK(evil)");
+        Assert.StartsWith("'\t", result);
+    }
+
+    [Fact]
+    public void Escape_PrefixesLeadingApostrophe_WhenValueStartsWithCarriageReturn()
+    {
+        var result = ExportEndpoint.Escape("\r=1+1");
+        Assert.StartsWith("'\r", result);
+    }
+
+    [Fact]
+    public void Escape_FormulaValueContainingComma_IsBothPrefixedAndQuoted()
+    {
+        var result = ExportEndpoint.Escape("=HYPERLINK(\"http://evil\"),\"click\"");
+        Assert.Equal("\"'=HYPERLINK(\"\"http://evil\"\"),\"\"click\"\"\"", result);
+    }
+
+    [Fact]
+    public void Escape_DoesNotPrefix_WhenFormulaTriggerCharIsNotFirst()
+    {
+        Assert.Equal("Total = 5", ExportEndpoint.Escape("Total = 5"));
+    }
+
+    [Fact]
+    public void Escape_DoesNotPrefix_ForOrdinaryValue()
+    {
+        Assert.Equal("John Doe", ExportEndpoint.Escape("John Doe"));
+    }
 }
