@@ -38,7 +38,7 @@ public static class ExportEndpoint
             value = "'" + value;
         }
 
-        if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r'))
+        if (value.Contains(',') || value.Contains('"') || value.Contains('\n') || value.Contains('\r') || value.Contains('\t'))
         {
             return $"\"{value.Replace("\"", "\"\"")}\"";
         }

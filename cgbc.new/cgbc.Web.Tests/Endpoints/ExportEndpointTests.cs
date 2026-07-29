@@ -78,6 +78,12 @@ public class ExportEndpointTests : IDisposable
     }
 
     [Fact]
+    public void Escape_QuotesValue_WhenContainsTab()
+    {
+        Assert.Equal("\"line1\tline2\"", ExportEndpoint.Escape("line1\tline2"));
+    }
+
+    [Fact]
     public void Escape_DoublesInternalQuotes()
     {
         Assert.Equal("\"say \"\"hello\"\"\"", ExportEndpoint.Escape("say \"hello\""));
@@ -108,8 +114,10 @@ public class ExportEndpointTests : IDisposable
     [Fact]
     public void Escape_PrefixesLeadingApostrophe_WhenValueStartsWithTab()
     {
+        // \t must also trigger CSV quoting, not just the formula-prefix — an
+        // unquoted bare \t in a field can be misread as a column delimiter.
         var result = ExportEndpoint.Escape("\tHYPERLINK(evil)");
-        Assert.StartsWith("'\t", result);
+        Assert.Equal("\"'\tHYPERLINK(evil)\"", result);
     }
 
     [Fact]
