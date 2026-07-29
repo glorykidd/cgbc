@@ -188,6 +188,8 @@ A password-protected admin area for managing connection card submissions:
 
 Uses ASP.NET Identity with cookie-based authentication. Login is handled via an HTML form POST to a minimal API endpoint (not Blazor EditForm) so the authentication cookie is set on the HTTP response. All admin pages require authorization via `[Authorize]` attribute.
 
+`/api/auth/login` and `/api/auth/logout` validate an antiforgery token (rendered via `<AntiforgeryToken />` in `Login.razor` and `AdminLayout.razor`'s logout form) before processing the request. A request without a valid token is rejected: login redirects to `/admin/login?error=1`, logout returns `400 Bad Request`. This matters if you're testing either endpoint directly (e.g. with curl) rather than through the rendered form — a bare POST with credentials but no antiforgery token will not authenticate.
+
 The admin account is seeded on startup from `appsettings.json`:
 
 ```json

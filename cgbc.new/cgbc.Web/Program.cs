@@ -162,3 +162,5 @@ cgbc.Web.Endpoints.AuthEndpoints.Map(app);
 cgbc.Web.Endpoints.ExportEndpoint.Map(app);
 
 app.Run();
+
+public partial class Program { }
