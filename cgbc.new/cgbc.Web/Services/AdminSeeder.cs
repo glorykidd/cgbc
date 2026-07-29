@@ -76,7 +76,12 @@ public static class AdminSeeder
             if (string.IsNullOrEmpty(existingUser.DisplayName))
             {
                 existingUser.DisplayName = "Administrator";
-                await userManager.UpdateAsync(existingUser);
+                var updateResult = await userManager.UpdateAsync(existingUser);
+                if (!updateResult.Succeeded)
+                {
+                    throw new InvalidOperationException(
+                        $"Failed to update DisplayName for seeded admin user '{username}': {string.Join("; ", updateResult.Errors.Select(e => e.Description))}");
+                }
             }
 
             if (!await userManager.IsInRoleAsync(existingUser, AdminRoles.SuperAdmin))
